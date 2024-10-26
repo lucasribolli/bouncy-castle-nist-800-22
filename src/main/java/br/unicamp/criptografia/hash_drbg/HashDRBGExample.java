@@ -4,6 +4,11 @@ import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import java.security.SecureRandom;
 
+/**
+ * ver sobre HashSP800DRBG:
+ https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/org/bouncycastle/crypto/prng/drbg/HashSP800DRBG.html
+ *
+ */
 public class HashDRBGExample {
 
     public static void run() {
@@ -21,6 +26,7 @@ public class HashDRBGExample {
 
     private static byte[] getBytes() {
         SHA256Digest sha256Digest = new SHA256Digest();
+        // https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/
         DigestRandomGenerator hashDrbg = new DigestRandomGenerator(sha256Digest);
 
         // Inicializar o gerador com uma semente
