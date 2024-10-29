@@ -9,9 +9,9 @@ import java.security.SecureRandom;
  https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/org/bouncycastle/crypto/prng/drbg/HashSP800DRBG.html
  *
  */
-public class HashDRBGExample {
+public class BouncyCastleHashDRBG {
 
-    public static void run() {
+    public static byte[] getRandomBytes() {
         byte[] randomBytes = getBytes();
 
         // Converter os bytes em uma sequência de bits para exibição
@@ -22,6 +22,8 @@ public class HashDRBGExample {
 
         // Imprimir a sequência de bits gerada
         System.out.println("Sequência de bits gerada: " + bitString.toString());
+
+        return randomBytes;
     }
 
     private static byte[] getBytes() {
