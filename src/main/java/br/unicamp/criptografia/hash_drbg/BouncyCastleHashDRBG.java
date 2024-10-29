@@ -11,7 +11,7 @@ public class BouncyCastleHashDRBG {
     private static int SECURITY_STRENGTH_BITS = 256;
     private static int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
 
-    public static byte[] getRandomBytes() {
+    public byte[] getRandomBytes() {
         EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
         SHA256Digest digest = new SHA256Digest();
