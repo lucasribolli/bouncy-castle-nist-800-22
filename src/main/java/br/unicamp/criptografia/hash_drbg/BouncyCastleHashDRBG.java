@@ -1,45 +1,63 @@
 package br.unicamp.criptografia.hash_drbg;
 
-import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.prng.EntropySource;
+import org.bouncycastle.crypto.prng.EntropySourceProvider;
+import org.bouncycastle.crypto.prng.drbg.HashSP800DRBG;
+
 import java.security.SecureRandom;
 
-/**
- * ver sobre HashSP800DRBG:
- https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/org/bouncycastle/crypto/prng/drbg/HashSP800DRBG.html
- *
- */
 public class BouncyCastleHashDRBG {
+    private static int SECURITY_STRENGTH_BITS = 256;
+    private static int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
 
     public static byte[] getRandomBytes() {
-        byte[] randomBytes = getBytes();
+        EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
-        // Converter os bytes em uma sequência de bits para exibição
-        StringBuilder bitString = new StringBuilder();
-        for (byte b : randomBytes) {
-            bitString.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
+        SHA256Digest digest = new SHA256Digest();
+        byte[] nonce = "nonce".getBytes();
+        byte[] personalizationString = "personalization".getBytes();
+
+        HashSP800DRBG drbg = new HashSP800DRBG(
+                digest,
+                SECURITY_STRENGTH_BITS,
+                entropySourceProvider.get(SECURITY_STRENGTH_BITS),
+                nonce,
+                personalizationString
+        );
+
+        byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
+        int numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
+        System.out.println("Número de bits gerados: " + numberOfGeneratedBits);
+
+        while (numberOfGeneratedBits == -1) {
+            System.out.println("Erro na geração de bytes aleatórios, precisa de um reseed");
+            numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
         }
-
-        // Imprimir a sequência de bits gerada
-        System.out.println("Sequência de bits gerada: " + bitString.toString());
 
         return randomBytes;
     }
 
-    private static byte[] getBytes() {
-        SHA256Digest sha256Digest = new SHA256Digest();
-        // https://downloads.bouncycastle.org/java/docs/bcprov-jdk18on-javadoc/
-        DigestRandomGenerator hashDrbg = new DigestRandomGenerator(sha256Digest);
-
-        // Inicializar o gerador com uma semente
+    private static EntropySourceProvider getEntropySourceProvider() {
         SecureRandom secureRandom = new SecureRandom();
-        byte[] seed = new byte[32];
-        secureRandom.nextBytes(seed);
-        hashDrbg.addSeedMaterial(seed);
+        return bitsRequired -> new EntropySource() {
+            @Override
+            public boolean isPredictionResistant() {
+                return true;
+            }
 
-        // Gerar uma sequência de bytes aleatórios
-        byte[] randomBytes = new byte[64]; // Defina o tamanho conforme necessário
-        hashDrbg.nextBytes(randomBytes);
-        return randomBytes;
+            @Override
+            public byte[] getEntropy() {
+                // ???
+                byte[] entropy = new byte[(bitsRequired + 7) / 8];
+                secureRandom.nextBytes(entropy);
+                return entropy;
+            }
+
+            @Override
+            public int entropySize() {
+                return bitsRequired;
+            }
+        };
     }
 }
