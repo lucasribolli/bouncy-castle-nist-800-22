@@ -11,11 +11,13 @@ public class BouncyCastleHashDRBG {
     private static int SECURITY_STRENGTH_BITS = 256;
     private static int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
 
-    public byte[] getRandomBytes() {
+    public byte[] generateRandomBytes() {
         EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
         SHA256Digest digest = new SHA256Digest();
+        // TODO set nonce
         byte[] nonce = "nonce".getBytes();
+        // TODO set personalization string
         byte[] personalizationString = "personalization".getBytes();
 
         HashSP800DRBG drbg = new HashSP800DRBG(
@@ -28,7 +30,6 @@ public class BouncyCastleHashDRBG {
 
         byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
         int numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
-        System.out.println("Número de bits gerados: " + numberOfGeneratedBits);
 
         while (numberOfGeneratedBits == -1) {
             System.out.println("Erro na geração de bytes aleatórios, precisa de um reseed");
@@ -59,5 +60,22 @@ public class BouncyCastleHashDRBG {
                 return bitsRequired;
             }
         };
+    }
+
+    /**
+     * @param byteArray the array to be converted
+     * @return 8 block size of bits
+     */
+    public static String bytesToBits(byte[] byteArray) {
+        StringBuilder bits = new StringBuilder();
+
+        for (byte b : byteArray) {
+            int noSignalValue = b & 0xFF;
+            String binaryString = Integer.toBinaryString(noSignalValue);
+            String eightWidthSize = "%8s";
+            bits.append(String.format(eightWidthSize, binaryString).replace(' ', '0'));
+        }
+
+        return bits.toString();
     }
 }
