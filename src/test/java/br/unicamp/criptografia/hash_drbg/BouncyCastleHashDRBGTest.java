@@ -29,18 +29,17 @@ public class BouncyCastleHashDRBGTest {
                 absoluteSum--;
             }
         }
-
         System.out.println("{[800-22] 2.1.4 (1)} Absolute sum: " + absoluteSum);
+
 
         // [800-22] 2.1.4 (2)
         double referenceDistribution = absoluteSum / Math.sqrt(length);
-
         System.out.println("{[800-22] 2.1.4 (2)} Reference Distribution: " + referenceDistribution);
 
 
         // [800-22] 2.1.4 (3)
-//        https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/special/Erf.html#erfc(double)
-        double pValue = erfc(referenceDistribution / Math.sqrt(2));
+        double pValue = org.apache.commons.math3.special.Erf.erfc(referenceDistribution / Math.sqrt(2));
+        System.out.println("{[800-22] 2.1.4 (3)} P-value: " + pValue);
 
         Assertions.assertEquals(1, 1);
     }
