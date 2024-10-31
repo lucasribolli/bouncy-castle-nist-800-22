@@ -2,15 +2,22 @@ package br.unicamp.criptografia.hash_drbg;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
+
+import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 
 public class BouncyCastleHashDRBGTest {
     String randomBits;
 
     @Before
     public void prepare() {
-        byte[] randomBytes = new BouncyCastleHashDRBG().generateRandomBytes();
-        randomBits = BouncyCastleHashDRBG.bytesToBits(randomBytes);
+        String nonce = CryptoHelper.generateNonce(128);
+        String personalizationString = generatePersonalizationString();
+        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
+//        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG("nonce", "personalizationString");
+        byte[] randomBytes = bouncyCastle.generateRandomBytes();
+        randomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
     @Test
@@ -41,7 +48,8 @@ public class BouncyCastleHashDRBGTest {
         double pValue = org.apache.commons.math3.special.Erf.erfc(referenceDistribution / Math.sqrt(2));
         System.out.println("{[800-22] 2.1.4 (3)} P-value: " + pValue);
 
-        Assertions.assertEquals(1, 1);
+        // [800-22] 2.1.5
+        assertThat(pValue, greaterThan(0.01));
     }
 
     private void frequency(String bits) {

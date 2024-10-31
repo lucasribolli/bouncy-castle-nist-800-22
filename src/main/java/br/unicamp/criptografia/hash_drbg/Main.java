@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
-        byte[] bouncyCastleRandomBytes = new BouncyCastleHashDRBG().generateRandomBytes();
+        byte[] bouncyCastleRandomBytes = new BouncyCastleHashDRBG("nonce", "personalizationString").generateRandomBytes();
         System.out.println("bouncyCastleRandomBytes: " + Arrays.toString(bouncyCastleRandomBytes));
     }
 }
