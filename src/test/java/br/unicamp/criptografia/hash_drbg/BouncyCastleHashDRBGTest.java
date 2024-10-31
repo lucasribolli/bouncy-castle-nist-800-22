@@ -6,6 +6,7 @@ import org.junit.Test;
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class BouncyCastleHashDRBGTest {
     String randomBits;
@@ -49,7 +50,7 @@ public class BouncyCastleHashDRBGTest {
         System.out.println("{[800-22] 2.1.4 (3)} P-value: " + pValue);
 
         // [800-22] 2.1.5
-        assertThat(pValue, greaterThan(0.01));
+        assertThat(pValue, greaterThanOrEqualTo(0.01));
     }
 
     private void frequency(String bits) {
