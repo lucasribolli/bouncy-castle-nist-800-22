@@ -1,31 +1,41 @@
 package br.unicamp.criptografia.hash_drbg;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class BouncyCastleHashDRBGTest {
+    BouncyCastleHashDRBG bouncyCastle;
+    String bouncyCastleRandomBits;
+
+    @Before
+    public void before() {
+        String nonce = CryptoHelper.generateNonce(128);
+        String personalizationString = generatePersonalizationString();
+        bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
+//        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG("nonce", "personalizationString");
+        byte[] randomBytes = bouncyCastle.generateRandomBytes();
+        bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
+    }
+
     @Test
     public void frequencyMonobitTest_NIST_Example() {
         String randomBits = "11001001000011111101101010100010" +
                 "0010000101101000110000100011010011" +
                 "0001001100011001100010100010111000";
-        double pValue = frequencyMonobitPValue(randomBits);
+        double pValue = getFrequencyMonobitPValue(randomBits);
 
         assertThat(pValue, greaterThanOrEqualTo(0.01));
     }
 
     @Test
-    public void frequencyMonobitTest_BouncyCastle() {
-        String nonce = CryptoHelper.generateNonce(128);
-        String personalizationString = generatePersonalizationString();
-        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-//        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG("nonce", "personalizationString");
-        byte[] randomBytes = bouncyCastle.generateRandomBytes();
-        String randomBits = CryptoHelper.bytesToBits(randomBytes);
-        double pValue = frequencyMonobitPValue(randomBits);
+    public void frequencyMonobitTest_Bouncy_Castle() {
+        double pValue = getFrequencyMonobitPValue(bouncyCastleRandomBits);
 
         assertThat(pValue, greaterThanOrEqualTo(0.01));
     }
@@ -35,7 +45,7 @@ public class BouncyCastleHashDRBGTest {
      * @param randomBits to be tested
      * @return pValue to be validated
      */
-    private double frequencyMonobitPValue(String randomBits) {
+    private double getFrequencyMonobitPValue(String randomBits) {
         // [800-22] 2.1.4 (1)
         int length = randomBits.length();
         System.out.println("{[800-22] 2.1.4 (1)} length (n): " + length);
@@ -66,7 +76,35 @@ public class BouncyCastleHashDRBGTest {
     }
 
     @Test
-    public void frequencyTestWithinABlock() {
+    public void frequencyTestWithinABlock_NIST_Example() {
+        blockFrequency("0110011010", 3);
+    }
+
+    private void blockFrequency(String randomBits, int lengthOfEachBlock) {
+        // [800-22] 2.2.4 (1)
+        int lengthOfTheBitString = randomBits.length();
+        int truncatedBlocksLength = lengthOfTheBitString / lengthOfEachBlock;
+        ArrayList<String> blocks = new ArrayList<>(truncatedBlocksLength);
+
+        int blockCount = 1;
+        StringBuilder currentBlock = new StringBuilder();
+        for (int bitIndex = 0; bitIndex < lengthOfTheBitString; bitIndex++) {
+
+            char currentBit = randomBits.charAt(bitIndex);
+            currentBlock.append(currentBit);
+
+            if (blockCount == truncatedBlocksLength) {
+                blocks.add(String.valueOf(currentBlock));
+                blockCount = 1;
+                currentBlock = new StringBuilder();
+            } else {
+                blockCount++;
+            }
+        }
+
+        System.out.println(blocks);
+
+        // [800-22] 2.2.4 (2)
 
     }
 }

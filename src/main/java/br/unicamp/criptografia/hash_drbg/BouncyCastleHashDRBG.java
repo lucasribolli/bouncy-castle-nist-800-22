@@ -12,6 +12,7 @@ public class BouncyCastleHashDRBG {
     private static final int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
     private final String mNonce;
     private final String mPersonalizationString;
+    private HashSP800DRBG drbg;
 
     public BouncyCastleHashDRBG(String nonce, String personalizationString) {
         mNonce = nonce;
@@ -25,7 +26,7 @@ public class BouncyCastleHashDRBG {
         byte[] nonce = mNonce.getBytes();
         byte[] personalizationString = mPersonalizationString.getBytes();
 
-        HashSP800DRBG drbg = new HashSP800DRBG(
+        drbg = new HashSP800DRBG(
                 digest,
                 SECURITY_STRENGTH_BITS,
                 entropySourceProvider.get(SECURITY_STRENGTH_BITS),
@@ -42,6 +43,10 @@ public class BouncyCastleHashDRBG {
         }
 
         return randomBytes;
+    }
+
+    public int getBlockSize() {
+        return drbg.getBlockSize();
     }
 
     private static EntropySourceProvider getEntropySourceProvider() {
