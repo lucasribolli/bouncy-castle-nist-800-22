@@ -1,5 +1,6 @@
 package br.unicamp.criptografia.hash_drbg;
 
+import org.apache.commons.math3.special.Erf;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,7 +70,7 @@ public class BouncyCastleHashDRBGTest {
 
 
         // [800-22] 2.1.4 (3)
-        double pValue = org.apache.commons.math3.special.Erf.erfc(referenceDistribution / Math.sqrt(2));
+        double pValue = Erf.erfc(referenceDistribution / Math.sqrt(2));
         System.out.println("{[800-22] 2.1.4 (3)} P-value: " + pValue);
 
         return pValue;
@@ -105,6 +106,22 @@ public class BouncyCastleHashDRBGTest {
         System.out.println(blocks);
 
         // [800-22] 2.2.4 (2)
+        ArrayList<Double> proportionOfOnes = new ArrayList<>();
+        double sum;
+        // 1 <= i <= N
+        for (int i = 1; i <= truncatedBlocksLength; i++) {
+            sum = 0;
+            for (int j = 0; j < lengthOfEachBlock; j++) {
+                int positionOfBit = (i - 1) * lengthOfEachBlock + j;
+                String bitString = String.valueOf(randomBits.charAt(positionOfBit));
+                sum += Integer.parseInt(bitString);
+            }
+
+            Double proportionOfOne = (sum / lengthOfEachBlock);
+            proportionOfOnes.add(proportionOfOne);
+        }
+
+        System.out.println(proportionOfOnes);
 
     }
 }
