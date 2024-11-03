@@ -1,8 +1,8 @@
 package br.unicamp.criptografia.hash_drbg;
 
 import org.apache.commons.math3.special.Erf;
-import org.apache.commons.math3.stat.inference.ChiSquareTest;
-import org.junit.Before;
+import org.apache.commons.math3.special.Gamma;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -12,15 +12,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 public class BouncyCastleHashDRBGTest {
-    BouncyCastleHashDRBG bouncyCastle;
-    String bouncyCastleRandomBits;
+    private static BouncyCastleHashDRBG bouncyCastle;
+    private static String bouncyCastleRandomBits;
 
-    @Before
-    public void before() {
+    @BeforeClass
+    public static void before() {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
         bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-//        BouncyCastleHashDRBG bouncyCastle = new BouncyCastleHashDRBG("nonce", "personalizationString");
         byte[] randomBytes = bouncyCastle.generateRandomBytes();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
@@ -44,6 +43,7 @@ public class BouncyCastleHashDRBGTest {
 
     /**
      * As "[800-22] 2.1.5", the pValue should be greater than or equal to 0.01 to the randomBits being random
+     *
      * @param randomBits to be tested
      * @return pValue to be validated
      */
@@ -79,10 +79,17 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyTestWithinABlock_NIST_Example() {
-        blockFrequency("0110011010", 3);
+        double pValue = getBlockFrequencyPValue("0110011010", 3);
+        assertThat(pValue, greaterThanOrEqualTo(0.01));
     }
 
-    private void blockFrequency(String randomBits, int lengthOfEachBlock) {
+    @Test
+    public void frequencyTestWithinABlock_Bouncy_Castle() {
+        double pValue = getBlockFrequencyPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
+        assertThat(pValue, greaterThanOrEqualTo(0.01));
+    }
+
+    private double getBlockFrequencyPValue(String randomBits, int lengthOfEachBlock) {
         // [800-22] 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = lengthOfTheBitString / lengthOfEachBlock;
@@ -104,7 +111,8 @@ public class BouncyCastleHashDRBGTest {
             }
         }
 
-        System.out.println(blocks);
+        System.out.println("blocks: " + blocks);
+
 
         // [800-22] 2.2.4 (2)
         ArrayList<Double> proportionOfOnes = new ArrayList<>();
@@ -124,6 +132,7 @@ public class BouncyCastleHashDRBGTest {
 
         System.out.println("proportionOfOnes: " + proportionOfOnes);
 
+
         // [800-22] 2.2.4 (3)
         double chiSquareStatisticObserved = 0.0;
         sum = 0.0;
@@ -134,5 +143,13 @@ public class BouncyCastleHashDRBGTest {
         chiSquareStatisticObserved = 4 * lengthOfEachBlock * sum;
 
         System.out.println("chiSquareStatisticObserved: " + chiSquareStatisticObserved);
+
+
+        // [800-22] 2.2.4 (4)
+        // igamc: Complementary Incomplete Gamma Function
+        double pValue = Gamma.regularizedGammaQ((double) nonOverlappingBlocks / 2, chiSquareStatisticObserved / 2);
+        System.out.println("pValue: " + pValue);
+
+        return pValue;
     }
 }
