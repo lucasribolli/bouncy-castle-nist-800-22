@@ -28,9 +28,8 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyMonobitTest_NIST_Example() {
-        String randomBits = "11001001000011111101101010100010" +
-                "0010000101101000110000100011010011" +
-                "0001001100011001100010100010111000";
+        String randomBits = "11001001000011111101101010100010001000010110100011000010001101001" +
+                "10001001100011001100010100010111000";
         double pValue = getFrequencyMonobitPValue(randomBits);
 
         assertThat(pValue, greaterThanOrEqualTo(0.01));
@@ -81,7 +80,8 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyTestWithinABlock_NIST_Example() {
-        double pValue = getBlockFrequencyPValue("0110011010", 3);
+        double pValue = getBlockFrequencyPValue("1100100100001111110110101010001000100001011010" +
+                "001100001000110100110001001100011001100010100010111000", 10);
         assertThat(pValue, greaterThanOrEqualTo(0.01));
     }
 
@@ -153,5 +153,9 @@ public class BouncyCastleHashDRBGTest {
         System.out.println("pValue: " + pValue);
 
         return pValue;
+    }
+
+    private double getRunsTestPValue() {
+        return 0.0;
     }
 }
