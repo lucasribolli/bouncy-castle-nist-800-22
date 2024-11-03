@@ -1,6 +1,7 @@
 package br.unicamp.criptografia.hash_drbg;
 
 import org.apache.commons.math3.special.Erf;
+import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -84,8 +85,8 @@ public class BouncyCastleHashDRBGTest {
     private void blockFrequency(String randomBits, int lengthOfEachBlock) {
         // [800-22] 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
-        int truncatedBlocksLength = lengthOfTheBitString / lengthOfEachBlock;
-        ArrayList<String> blocks = new ArrayList<>(truncatedBlocksLength);
+        int nonOverlappingBlocks = lengthOfTheBitString / lengthOfEachBlock;
+        ArrayList<String> blocks = new ArrayList<>(nonOverlappingBlocks);
 
         int blockCount = 1;
         StringBuilder currentBlock = new StringBuilder();
@@ -94,7 +95,7 @@ public class BouncyCastleHashDRBGTest {
             char currentBit = randomBits.charAt(bitIndex);
             currentBlock.append(currentBit);
 
-            if (blockCount == truncatedBlocksLength) {
+            if (blockCount == nonOverlappingBlocks) {
                 blocks.add(String.valueOf(currentBlock));
                 blockCount = 1;
                 currentBlock = new StringBuilder();
@@ -109,7 +110,7 @@ public class BouncyCastleHashDRBGTest {
         ArrayList<Double> proportionOfOnes = new ArrayList<>();
         double sum;
         // 1 <= i <= N
-        for (int i = 1; i <= truncatedBlocksLength; i++) {
+        for (int i = 1; i <= nonOverlappingBlocks; i++) {
             sum = 0;
             for (int j = 0; j < lengthOfEachBlock; j++) {
                 int positionOfBit = (i - 1) * lengthOfEachBlock + j;
@@ -121,7 +122,17 @@ public class BouncyCastleHashDRBGTest {
             proportionOfOnes.add(proportionOfOne);
         }
 
-        System.out.println(proportionOfOnes);
+        System.out.println("proportionOfOnes: " + proportionOfOnes);
 
+        // [800-22] 2.2.4 (3)
+        double chiSquareStatisticObserved = 0.0;
+        sum = 0.0;
+        for (int i = 0; i < nonOverlappingBlocks; i++) {
+            sum += Math.pow(proportionOfOnes.get(i) - 0.5, 2);
+        }
+
+        chiSquareStatisticObserved = 4 * lengthOfEachBlock * sum;
+
+        System.out.println("chiSquareStatisticObserved: " + chiSquareStatisticObserved);
     }
 }
