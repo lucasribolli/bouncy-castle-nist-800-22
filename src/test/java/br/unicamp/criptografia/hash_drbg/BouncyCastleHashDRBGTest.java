@@ -15,6 +15,8 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 //  make better logs: title of the method: log(tag, m) -> {2.1.4 (1)}, length: ....
 public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
+    private static final String NIST_EXAMPLE_RANDOM_BITS = "11001001000011111101101010100010001000010110100" +
+            "01100001000110100110001001100011001100010100010111000";
     private static BouncyCastleHashDRBG bouncyCastle;
     private static String bouncyCastleRandomBits;
 
@@ -29,9 +31,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyMonobitTest_NIST_Example() {
-        String randomBits = "11001001000011111101101010100010001000010110100011000010001101001" +
-                "10001001100011001100010100010111000";
-        double pValue = getFrequencyMonobitPValue(randomBits);
+        double pValue = getFrequencyMonobitPValue(NIST_EXAMPLE_RANDOM_BITS);
 
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
@@ -82,8 +82,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyTestWithinABlock_NIST_Example() {
-        double pValue = getBlockFrequencyPValue("1100100100001111110110101010001000100001011010" +
-                "001100001000110100110001001100011001100010100010111000", 10);
+        double pValue = getBlockFrequencyPValue(NIST_EXAMPLE_RANDOM_BITS, 10);
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -161,8 +160,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void runsTest_NIST_Example() {
-        double pValue = getRunsTestPValue("11001001000011111101101010100010001000010110100011" +
-                "00001000110100110001001100011001100010100010111000");
+        double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_BITS);
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -225,6 +223,17 @@ public class BouncyCastleHashDRBGTest {
             ret = 1;
         }
         return ret;
+    }
+
+    @Test
+    public void testForTheLongestRunOfOnesInABlock_NIST_Example() {
+
+    }
+
+    private double testForTheLongestRunOfOnesInABlock() {
+
+
+        return 0.0;
     }
 
     private void log(String tag, int part, String message) {
