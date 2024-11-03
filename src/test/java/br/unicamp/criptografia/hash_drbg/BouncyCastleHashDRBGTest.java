@@ -177,11 +177,39 @@ public class BouncyCastleHashDRBGTest {
         preTestProportion = sum / lengthOfTheBitString;
         log(logTag, 1, "preTestProportion: " + preTestProportion);
 
+        // 2.3.4 (2)
+        // Frequency monobit test should be successful
+
+        // 2.3.4 (3)
+        int testStatisticValue = 0;
+        for (int k = 1; k <= lengthOfTheBitString - 1; k++) {
+            int r = r(randomBits, k);
+            testStatisticValue += r;
+        }
+        testStatisticValue++;
+
+        log(logTag, 3, "testStatisticValue: " + testStatisticValue);
 
         return 0.0;
     }
 
+    private int r(String randomBits, int k) {
+        int currentBit = Integer.parseInt(String.valueOf(randomBits.charAt(k)));
+        int nextBit = -1;
+        int ret;
+        try {
+            nextBit = Integer.parseInt(String.valueOf(randomBits.charAt(k + 1)));
+        } catch (IndexOutOfBoundsException _) {
+        }
+        if (currentBit == nextBit) {
+            ret = 0;
+        } else {
+            ret = 1;
+        }
+        return ret;
+    }
+
     private void log(String tag, int part, String message) {
-        System.out.println("[" + tag + "] (" + part +") " + message);
+        System.out.println("[" + tag + "] (" + part + ") " + message);
     }
 }
