@@ -49,9 +49,10 @@ public class BouncyCastleHashDRBGTest {
      * @return pValue to be validated
      */
     private double getFrequencyMonobitPValue(String randomBits) {
+        String logTag = "2.1.4";
         // 2.1.4 (1)
         int length = randomBits.length();
-        System.out.println("{2.1.4 (1)} length (n): " + length);
+        log(logTag, 1, "length (n): " + length);
 
         int absoluteSum = 0;
 
@@ -63,17 +64,17 @@ public class BouncyCastleHashDRBGTest {
                 absoluteSum--;
             }
         }
-        System.out.println("{2.1.4 (1)} Absolute sum: " + absoluteSum);
+        log(logTag, 1, "Absolute sum: " + absoluteSum);
 
 
         // 2.1.4 (2)
         double referenceDistribution = Math.abs(absoluteSum) / Math.sqrt(length);
-        System.out.println("{2.1.4 (2)} Reference Distribution: " + referenceDistribution);
+        log(logTag, 2, "Reference Distribution: " + referenceDistribution);
 
 
         // 2.1.4 (3)
         double pValue = Erf.erfc(referenceDistribution / Math.sqrt(2));
-        System.out.println("{2.1.4 (3)} P-value: " + pValue);
+        log(logTag, 3, "P-value: " + pValue);
 
         return pValue;
     }
@@ -92,6 +93,8 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getBlockFrequencyPValue(String randomBits, int lengthOfEachBlock) {
+        String logTag = "2.2.4";
+
         // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = lengthOfTheBitString / lengthOfEachBlock;
@@ -113,7 +116,7 @@ public class BouncyCastleHashDRBGTest {
             }
         }
 
-        System.out.println("blocks: " + blocks);
+        log(logTag, 1, "blocks: " + blocks);
 
 
         // 2.2.4 (2)
@@ -132,7 +135,7 @@ public class BouncyCastleHashDRBGTest {
             proportionOfOnes.add(proportionOfOne);
         }
 
-        System.out.println("proportionOfOnes: " + proportionOfOnes);
+        log(logTag, 2, "proportionOfOnes: " + proportionOfOnes);
 
 
         // 2.2.4 (3)
@@ -144,13 +147,13 @@ public class BouncyCastleHashDRBGTest {
 
         chiSquareStatisticObserved = 4 * lengthOfEachBlock * sum;
 
-        System.out.println("chiSquareStatisticObserved: " + chiSquareStatisticObserved);
+        log(logTag, 3, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
 
 
         // 2.2.4 (4)
         // igamc: Complementary Incomplete Gamma Function
         double pValue = Gamma.regularizedGammaQ((double) nonOverlappingBlocks / 2, chiSquareStatisticObserved / 2);
-        System.out.println("pValue: " + pValue);
+        log(logTag, 4, "pValue: " + pValue);
 
         return pValue;
     }
@@ -161,6 +164,8 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getRunsTestPValue(String randomBits) {
+        String logTag = "2.3.4";
+
         // 2.3.4 (1)
         int lengthOfTheBitString = randomBits.length();
         double preTestProportion = 0.0;
@@ -170,9 +175,13 @@ public class BouncyCastleHashDRBGTest {
             sum += bit;
         }
         preTestProportion = sum / lengthOfTheBitString;
-        System.out.println("preTestProportion: " + preTestProportion);
+        log(logTag, 1, "preTestProportion: " + preTestProportion);
 
 
         return 0.0;
+    }
+
+    private void log(String tag, int part, String message) {
+        System.out.println("[" + tag + "] (" + part +") " + message);
     }
 }
