@@ -11,8 +11,6 @@ import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonaliza
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
-// TODO
-//  make better logs: title of the method: log(tag, m) -> {2.1.4 (1)}, length: ....
 public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
     private static final String NIST_EXAMPLE_RANDOM_BITS = "11001001000011111101101010100010001000010110100" +
