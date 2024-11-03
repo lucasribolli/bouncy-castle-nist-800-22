@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 // TODO
 //  make better logs: title of the method: log(tag, m) -> {2.1.4 (1)}, length: ....
 public class BouncyCastleHashDRBGTest {
+    private static final Double BASE_P_VALUE = 0.01;
     private static BouncyCastleHashDRBG bouncyCastle;
     private static String bouncyCastleRandomBits;
 
@@ -32,18 +33,18 @@ public class BouncyCastleHashDRBGTest {
                 "10001001100011001100010100010111000";
         double pValue = getFrequencyMonobitPValue(randomBits);
 
-        assertThat(pValue, greaterThanOrEqualTo(0.01));
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void frequencyMonobitTest_Bouncy_Castle() {
         double pValue = getFrequencyMonobitPValue(bouncyCastleRandomBits);
 
-        assertThat(pValue, greaterThanOrEqualTo(0.01));
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     /**
-     * As "2.1.5", the pValue should be greater than or equal to 0.01 to the randomBits being random
+     * As "2.1.5", the pValue should be greater than or equal to P_VALUE to the randomBits being random
      *
      * @param randomBits to be tested
      * @return pValue to be validated
@@ -83,13 +84,13 @@ public class BouncyCastleHashDRBGTest {
     public void frequencyTestWithinABlock_NIST_Example() {
         double pValue = getBlockFrequencyPValue("1100100100001111110110101010001000100001011010" +
                 "001100001000110100110001001100011001100010100010111000", 10);
-        assertThat(pValue, greaterThanOrEqualTo(0.01));
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void frequencyTestWithinABlock_Bouncy_Castle() {
         double pValue = getBlockFrequencyPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
-        assertThat(pValue, greaterThanOrEqualTo(0.01));
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     private double getBlockFrequencyPValue(String randomBits, int lengthOfEachBlock) {
@@ -160,7 +161,15 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void runsTest_NIST_Example() {
-        getRunsTestPValue("1001101011");
+        double pValue = getRunsTestPValue("11001001000011111101101010100010001000010110100011" +
+                "00001000110100110001001100011001100010100010111000");
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
+    }
+
+    @Test
+    public void runsTest_Bouncy_Castle() {
+        double pValue = getRunsTestPValue(bouncyCastleRandomBits);
+        assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     private double getRunsTestPValue(String randomBits) {
@@ -177,8 +186,10 @@ public class BouncyCastleHashDRBGTest {
         preTestProportion = sum / lengthOfTheBitString;
         log(logTag, 1, "preTestProportion: " + preTestProportion);
 
+
         // 2.3.4 (2)
         // Frequency monobit test should be successful
+
 
         // 2.3.4 (3)
         int testStatisticValue = 0;
@@ -190,7 +201,14 @@ public class BouncyCastleHashDRBGTest {
 
         log(logTag, 3, "testStatisticValue: " + testStatisticValue);
 
-        return 0.0;
+
+        // 2.3.4 (4)
+        double divisor = Math.abs(testStatisticValue - 2 * lengthOfTheBitString * preTestProportion * (1 - preTestProportion));
+        double dividend = 2 * Math.sqrt(2 * lengthOfTheBitString) * preTestProportion * (1 - preTestProportion);
+        double pValue = Erf.erfc(divisor / dividend);
+        log(logTag, 3, "pValue: " + pValue);
+
+        return pValue;
     }
 
     private int r(String randomBits, int k) {
