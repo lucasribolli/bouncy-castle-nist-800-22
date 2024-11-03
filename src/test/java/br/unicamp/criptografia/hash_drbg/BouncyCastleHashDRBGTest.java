@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 // TODO
-//  make better logs: title of the method: log(tag, m) -> {[800-22] 2.1.4 (1)}, length: ....
+//  make better logs: title of the method: log(tag, m) -> {2.1.4 (1)}, length: ....
 public class BouncyCastleHashDRBGTest {
     private static BouncyCastleHashDRBG bouncyCastle;
     private static String bouncyCastleRandomBits;
@@ -43,15 +43,15 @@ public class BouncyCastleHashDRBGTest {
     }
 
     /**
-     * As "[800-22] 2.1.5", the pValue should be greater than or equal to 0.01 to the randomBits being random
+     * As "2.1.5", the pValue should be greater than or equal to 0.01 to the randomBits being random
      *
      * @param randomBits to be tested
      * @return pValue to be validated
      */
     private double getFrequencyMonobitPValue(String randomBits) {
-        // [800-22] 2.1.4 (1)
+        // 2.1.4 (1)
         int length = randomBits.length();
-        System.out.println("{[800-22] 2.1.4 (1)} length (n): " + length);
+        System.out.println("{2.1.4 (1)} length (n): " + length);
 
         int absoluteSum = 0;
 
@@ -63,17 +63,17 @@ public class BouncyCastleHashDRBGTest {
                 absoluteSum--;
             }
         }
-        System.out.println("{[800-22] 2.1.4 (1)} Absolute sum: " + absoluteSum);
+        System.out.println("{2.1.4 (1)} Absolute sum: " + absoluteSum);
 
 
-        // [800-22] 2.1.4 (2)
+        // 2.1.4 (2)
         double referenceDistribution = Math.abs(absoluteSum) / Math.sqrt(length);
-        System.out.println("{[800-22] 2.1.4 (2)} Reference Distribution: " + referenceDistribution);
+        System.out.println("{2.1.4 (2)} Reference Distribution: " + referenceDistribution);
 
 
-        // [800-22] 2.1.4 (3)
+        // 2.1.4 (3)
         double pValue = Erf.erfc(referenceDistribution / Math.sqrt(2));
-        System.out.println("{[800-22] 2.1.4 (3)} P-value: " + pValue);
+        System.out.println("{2.1.4 (3)} P-value: " + pValue);
 
         return pValue;
     }
@@ -92,7 +92,7 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getBlockFrequencyPValue(String randomBits, int lengthOfEachBlock) {
-        // [800-22] 2.2.4 (1)
+        // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = lengthOfTheBitString / lengthOfEachBlock;
         ArrayList<String> blocks = new ArrayList<>(nonOverlappingBlocks);
@@ -116,7 +116,7 @@ public class BouncyCastleHashDRBGTest {
         System.out.println("blocks: " + blocks);
 
 
-        // [800-22] 2.2.4 (2)
+        // 2.2.4 (2)
         ArrayList<Double> proportionOfOnes = new ArrayList<>();
         double sum;
         // 1 <= i <= N
@@ -135,7 +135,7 @@ public class BouncyCastleHashDRBGTest {
         System.out.println("proportionOfOnes: " + proportionOfOnes);
 
 
-        // [800-22] 2.2.4 (3)
+        // 2.2.4 (3)
         double chiSquareStatisticObserved = 0.0;
         sum = 0.0;
         for (int i = 0; i < nonOverlappingBlocks; i++) {
@@ -147,7 +147,7 @@ public class BouncyCastleHashDRBGTest {
         System.out.println("chiSquareStatisticObserved: " + chiSquareStatisticObserved);
 
 
-        // [800-22] 2.2.4 (4)
+        // 2.2.4 (4)
         // igamc: Complementary Incomplete Gamma Function
         double pValue = Gamma.regularizedGammaQ((double) nonOverlappingBlocks / 2, chiSquareStatisticObserved / 2);
         System.out.println("pValue: " + pValue);
@@ -155,7 +155,24 @@ public class BouncyCastleHashDRBGTest {
         return pValue;
     }
 
-    private double getRunsTestPValue() {
+    @Test
+    public void runsTest_NIST_Example() {
+        getRunsTestPValue("1001101011");
+    }
+
+    private double getRunsTestPValue(String randomBits) {
+        // 2.3.4 (1)
+        int lengthOfTheBitString = randomBits.length();
+        double preTestProportion = 0.0;
+        double sum = 0.0;
+        for (int j = 0; j < lengthOfTheBitString; j++) {
+            int bit = Integer.parseInt(String.valueOf(randomBits.charAt(j)));
+            sum += bit;
+        }
+        preTestProportion = sum / lengthOfTheBitString;
+        System.out.println("preTestProportion: " + preTestProportion);
+
+
         return 0.0;
     }
 }
