@@ -6,6 +6,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -95,24 +97,8 @@ public class BouncyCastleHashDRBGTest {
 
         // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
-        int nonOverlappingBlocks = lengthOfTheBitString / lengthOfEachBlock;
-        ArrayList<String> blocks = new ArrayList<>(nonOverlappingBlocks);
-
-        int blockCount = 1;
-        StringBuilder currentBlock = new StringBuilder();
-        for (int bitIndex = 0; bitIndex < lengthOfTheBitString; bitIndex++) {
-
-            char currentBit = randomBits.charAt(bitIndex);
-            currentBlock.append(currentBit);
-
-            if (blockCount == nonOverlappingBlocks) {
-                blocks.add(String.valueOf(currentBlock));
-                blockCount = 1;
-                currentBlock = new StringBuilder();
-            } else {
-                blockCount++;
-            }
-        }
+        int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfTheBitString, lengthOfEachBlock);
+        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks);
 
         log(logTag, 1, "blocks: " + blocks);
 
@@ -228,10 +214,60 @@ public class BouncyCastleHashDRBGTest {
 
     }
 
-    private double testForTheLongestRunOfOnesInABlock() {
+    private double getTestForTheLongestRunOfOnesInABlockPValue(String randomBits, int lengthOfEachBlock) {
+        HashMap<Integer, Integer> preSetMinimumLengthOfBitStringByLengthOfEachBlock = new HashMap<>();
+        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(128, 8);
+        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(6272, 128);
+        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(750000, (int) Math.pow(10, 4));
+
+        HashMap<Integer, Vector<Integer>> preSetMKN = new HashMap<>();
+        Vector<Integer> firstKN = new Vector<>(2, 0);
+        firstKN.add(3);
+        firstKN.add(16);
+        preSetMKN.put(8, firstKN);
+        Vector<Integer> secondKN = new Vector<>(2, 0);
+        secondKN.add(5);
+        secondKN.add(49);
+        preSetMKN.put(128, secondKN);
+        Vector<Integer> thirdKN = new Vector<>(2, 0);
+        thirdKN.add(6);
+        thirdKN.add(75);
+        preSetMKN.put((int) Math.pow(10, 4), thirdKN);
+
+        // 2.4.4 (1)
+        int lengthOfBitString = randomBits.length();
+        int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfBitString, lengthOfEachBlock);
+        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks);
+
+        // 2.4.4 (2)
 
 
         return 0.0;
+    }
+
+    private int getNonOverlappingBlocks(int lengthOfTheBitString, int lengthOfEachBlock) {
+        return lengthOfTheBitString / lengthOfEachBlock;
+    }
+
+    private ArrayList<String> getBlocks(String randomBits, int nonOverlappingBlocks) {
+        int lengthOfTheBitString = randomBits.length();
+        ArrayList<String> blocks = new ArrayList<>(nonOverlappingBlocks);
+        int blockCount = 1;
+        StringBuilder currentBlock = new StringBuilder();
+        for (int bitIndex = 0; bitIndex < lengthOfTheBitString; bitIndex++) {
+
+            char currentBit = randomBits.charAt(bitIndex);
+            currentBlock.append(currentBit);
+
+            if (blockCount == nonOverlappingBlocks) {
+                blocks.add(String.valueOf(currentBlock));
+                blockCount = 1;
+                currentBlock = new StringBuilder();
+            } else {
+                blockCount++;
+            }
+        }
+        return blocks;
     }
 
     private void log(String tag, int part, String message) {

@@ -8,11 +8,11 @@ import org.bouncycastle.crypto.prng.drbg.HashSP800DRBG;
 import java.security.SecureRandom;
 
 public class BouncyCastleHashDRBG {
-    private static final int SECURITY_STRENGTH_BITS = 256;
+    private static final int SECURITY_STRENGTH_BITS = 128;
     private static final int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
     private final String mNonce;
     private final String mPersonalizationString;
-    private HashSP800DRBG drbg;
+    private HashSP800DRBG hashDrbg;
 
     public BouncyCastleHashDRBG(String nonce, String personalizationString) {
         mNonce = nonce;
@@ -26,7 +26,7 @@ public class BouncyCastleHashDRBG {
         byte[] nonce = mNonce.getBytes();
         byte[] personalizationString = mPersonalizationString.getBytes();
 
-        drbg = new HashSP800DRBG(
+        hashDrbg = new HashSP800DRBG(
                 digest,
                 SECURITY_STRENGTH_BITS,
                 entropySourceProvider.get(SECURITY_STRENGTH_BITS),
@@ -35,18 +35,18 @@ public class BouncyCastleHashDRBG {
         );
 
         byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
-        int numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
+        int numberOfGeneratedBits = hashDrbg.generate(randomBytes, null, false);
 
         while (numberOfGeneratedBits == -1) {
             System.out.println("Erro na geração de bytes aleatórios, precisa de um reseed");
-            numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
+            numberOfGeneratedBits = hashDrbg.generate(randomBytes, null, false);
         }
 
         return randomBytes;
     }
 
     public int getBlockSize() {
-        return drbg.getBlockSize();
+        return hashDrbg.getBlockSize();
     }
 
     private static EntropySourceProvider getEntropySourceProvider() {
