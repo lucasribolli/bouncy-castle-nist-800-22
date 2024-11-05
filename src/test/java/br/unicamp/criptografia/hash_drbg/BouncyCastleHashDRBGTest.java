@@ -215,24 +215,12 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getTestForTheLongestRunOfOnesInABlockPValue(String randomBits, int lengthOfEachBlock) {
-        HashMap<Integer, Integer> preSetMinimumLengthOfBitStringByLengthOfEachBlock = new HashMap<>();
-        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(128, 8);
-        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(6272, 128);
-        preSetMinimumLengthOfBitStringByLengthOfEachBlock.put(750000, (int) Math.pow(10, 4));
+        Integer[][] preSetMinimumLengthOfBitStringByLengthOfEachBlock = {
+                {128, 8},
+                {6272, 128},
+                {750000, (int) Math.pow(10, 4)}
+        };
 
-        HashMap<Integer, Vector<Integer>> preSetMKN = new HashMap<>();
-        Vector<Integer> firstKN = new Vector<>(2, 0);
-        firstKN.add(3);
-        firstKN.add(16);
-        preSetMKN.put(8, firstKN);
-        Vector<Integer> secondKN = new Vector<>(2, 0);
-        secondKN.add(5);
-        secondKN.add(49);
-        preSetMKN.put(128, secondKN);
-        Vector<Integer> thirdKN = new Vector<>(2, 0);
-        thirdKN.add(6);
-        thirdKN.add(75);
-        preSetMKN.put((int) Math.pow(10, 4), thirdKN);
 
         // 2.4.4 (1)
         int lengthOfBitString = randomBits.length();
@@ -240,6 +228,33 @@ public class BouncyCastleHashDRBGTest {
         ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks);
 
         // 2.4.4 (2)
+//        int[][] frequenciesOfTheLongestRunsOfOnes = {
+//                {1, 4, 3, 4},
+//                {4, 5, 6, 7, 8, 9},
+//                {10, 11, 12, 13, 14, 15, 16}
+//        };
+        Integer[][] frequenciesOfTheLongestRunsOfOnes = {
+            //  M=8, M=128, M=10⁴
+                {1, 4, 10},
+                {2, 5, 11},
+                {3, 6, 12},
+                {4, 7, 13},
+                {null, 8, 14},
+                {null, 9, 15},
+                {null, null, 16}
+        };
+
+
+        // 2.4.4 (3)
+        Integer[][] preSetMKN = {
+                {8, 3, 16},
+                {128, 5, 49},
+                {(int) Math.pow(10, 4), 6, 75}
+        };
+
+
+
+
 
 
         return 0.0;
