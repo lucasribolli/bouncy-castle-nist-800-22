@@ -8,15 +8,17 @@ import org.bouncycastle.crypto.prng.drbg.HashSP800DRBG;
 import java.security.SecureRandom;
 
 public class BouncyCastleHashDRBG {
-    private static final int SECURITY_STRENGTH_BITS = 128;
-    private static final int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
     private final String mNonce;
     private final String mPersonalizationString;
     private HashSP800DRBG hashDrbg;
+    private int mSecurityStrengthBits;
+    private int mSecurityStrengthBytes;
 
-    public BouncyCastleHashDRBG(String nonce, String personalizationString) {
+    public BouncyCastleHashDRBG(String nonce, String personalizationString, int securityStrengthBits) {
         mNonce = nonce;
         mPersonalizationString = personalizationString;
+        mSecurityStrengthBits = securityStrengthBits;
+        mSecurityStrengthBytes = securityStrengthBits / 8;
     }
 
     public byte[] generateRandomBytes() {
@@ -28,13 +30,13 @@ public class BouncyCastleHashDRBG {
 
         hashDrbg = new HashSP800DRBG(
                 digest,
-                SECURITY_STRENGTH_BITS,
-                entropySourceProvider.get(SECURITY_STRENGTH_BITS),
+                mSecurityStrengthBits,
+                entropySourceProvider.get(mSecurityStrengthBits),
                 nonce,
                 personalizationString
         );
 
-        byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
+        byte[] randomBytes = new byte[mSecurityStrengthBytes];
         int numberOfGeneratedBits = hashDrbg.generate(randomBytes, null, false);
 
         while (numberOfGeneratedBits == -1) {

@@ -20,14 +20,15 @@ public class BouncyCastleHashDRBGTest {
     private static final String NIST_EXAMPLE_RANDOM_BITS_128_BITS = "11001100000101010110110001001100111000000000001" +
             "001001101010100010001001111010110100000001101011111001100111001101101100010110010";
     private static BouncyCastleHashDRBG bouncyCastle;
+    private static byte[] randomBytes;
     private static String bouncyCastleRandomBits;
 
     @BeforeClass
     public static void before() {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
-        bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-        byte[] randomBytes = bouncyCastle.generateRandomBytes();
+        bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString, 128);
+        randomBytes = bouncyCastle.generateRandomBytes();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
@@ -213,7 +214,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void testForTheLongestRunOfOnesInABlock_Bouncy_Castle() {
-        double pValue = getTestForTheLongestRunOfOnesInABlockPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
+        double pValue = getRunsTestPValue(bouncyCastleRandomBits);
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -234,11 +235,11 @@ public class BouncyCastleHashDRBGTest {
                 {750000, (int) Math.pow(10, 4)}
         };
 
-        for(Integer[] preSet : preSetMinimumLengthOfBitStringByLengthOfEachBlock) {
+        for (Integer[] preSet : preSetMinimumLengthOfBitStringByLengthOfEachBlock) {
             int maxNumberOfBitsSegment = preSet[0];
             if (lengthOfBitString < maxNumberOfBitsSegment) {
                 int maxBlockSizeSegment = preSet[1];
-                if (lengthOfEachBlock >= maxBlockSizeSegment) {
+                if (lengthOfEachBlock > maxBlockSizeSegment) {
                     throw new InvalidParameterException("Random bits has a wrong block size: (lengthOfBitString) "
                             + lengthOfBitString + "; (lengthOfEachBlock) " + lengthOfEachBlock);
                 }
@@ -329,11 +330,52 @@ public class BouncyCastleHashDRBGTest {
      */
     private double[] getProbabilitiesFromKAndM(int k, int m) {
         if (k == 3 && m == 8) {
-            return new double[] {
-                0.2148,
-                0.3672,
-                0.2305,
-                0.1875
+            return new double[]{
+                    0.2148,
+                    0.3672,
+                    0.2305,
+                    0.1875
+            };
+        }
+        if (k == 5 && m == 128) {
+            return new double[]{
+                    0.1174,
+                    0.2430,
+                    0.2493,
+                    0.1752,
+                    0.1027,
+                    0.1124
+            };
+        }
+        if (k == 5 && m == 512) {
+            return new double[]{
+                    0.1170,
+                    0.2460,
+                    0.2523,
+                    0.1755,
+                    0.1027,
+                    0.1124
+            };
+        }
+        if (k == 5 && m == 1000) {
+            return new double[]{
+                    0.1307,
+                    0.2437,
+                    0.2452,
+                    0.1714,
+                    0.1002,
+                    0.1088,
+            };
+        }
+        if (k == 5 && m == 10000) {
+            return new double[]{
+                    0.0882,
+                    0.2092,
+                    0.2483,
+                    0.1933,
+                    0.1208,
+                    0.0675,
+                    0.0727
             };
         }
         return new double[]{};
