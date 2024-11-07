@@ -12,6 +12,7 @@ import java.util.Vector;
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertFalse;
 
 public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
@@ -35,14 +36,14 @@ public class BouncyCastleHashDRBGTest {
     @Test
     public void frequencyMonobitTest_NIST_Example() {
         double pValue = getFrequencyMonobitPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS);
-
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void frequencyMonobitTest_Bouncy_Castle() {
         double pValue = getFrequencyMonobitPValue(bouncyCastleRandomBits);
-
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -86,12 +87,14 @@ public class BouncyCastleHashDRBGTest {
     @Test
     public void frequencyTestWithinABlock_NIST_Example() {
         double pValue = getBlockFrequencyPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS, 10);
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void frequencyTestWithinABlock_Bouncy_Castle() {
         double pValue = getBlockFrequencyPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -148,12 +151,14 @@ public class BouncyCastleHashDRBGTest {
     @Test
     public void runsTest_NIST_Example() {
         double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS);
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void runsTest_Bouncy_Castle() {
         double pValue = getRunsTestPValue(bouncyCastleRandomBits);
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -215,12 +220,14 @@ public class BouncyCastleHashDRBGTest {
     @Test
     public void testForTheLongestRunOfOnesInABlock_Bouncy_Castle() {
         double pValue = getTestForTheLongestRunOfOnesInABlockPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
     @Test
     public void testForTheLongestRunOfOnesInABlock_NIST_Example() {
         double pValue = getTestForTheLongestRunOfOnesInABlockPValue(NIST_EXAMPLE_RANDOM_BITS_128_BITS, 8);
+        assertFalse("pValue is not a number", Double.isNaN(pValue));
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 
@@ -379,6 +386,17 @@ public class BouncyCastleHashDRBGTest {
             };
         }
         return new double[]{};
+    }
+
+    @Test
+    public void binaryMatrixRankTest_NIST_Example() {
+
+    }
+
+    private double getBinaryMatrixRankTestPValue(String randomBits) {
+        int lengthOfTheBitString = randomBits.length();
+
+        return 0.0;
     }
 
     private int getNonOverlappingBlocks(int lengthOfTheBitString, int lengthOfEachBlock) {
