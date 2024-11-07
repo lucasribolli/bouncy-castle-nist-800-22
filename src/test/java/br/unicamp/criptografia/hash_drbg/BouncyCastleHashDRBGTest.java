@@ -297,17 +297,6 @@ public class BouncyCastleHashDRBGTest {
             int n = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 2);
             double[][] preSetFrequencyByProbability = getProbabilitiesFromKAndM(sizeOfFrequencies, lengthOfEachBlock);
             double probability = preSetFrequencyByProbability[i][1];
-//            for (int p = 0; p < preSetFrequencyByProbability.length; p++) {
-//                double[] currentPreSetFrequencyByProbability = preSetFrequencyByProbability[p];
-//                int preSetFrequency = (int) currentPreSetFrequencyByProbability[0];
-//                if ((p == 0 && currentFrequency <= preSetFrequency) ||
-//                        (p == preSetFrequencyByProbability.length - 1 && currentFrequency >= preSetFrequency)) {
-//                    probability = currentPreSetFrequencyByProbability[1];
-//                    break;
-//                } else if (currentFrequency == preSetFrequency) {
-//                    probability = currentPreSetFrequencyByProbability[1];
-//                }
-//            }
             double nByProbability = n * probability;
             double divisor = Math.pow(currentFrequency - nByProbability, 2);
             chiSquareStatisticObserved += divisor / nByProbability;
@@ -349,54 +338,6 @@ public class BouncyCastleHashDRBGTest {
             };
         }
         return new double[][]{};
-    }
-
-
-    public double testLongestRunOfOnes(String binarySequence, int blockSize, int numberOfBlocks) {
-        // Define expected probabilities based on NIST's test
-        int[] expectedRuns = {1, 2, 3, 4}; // Adjust as needed for larger blocks
-        double[] probabilities = {0.2148, 0.3672, 0.2305, 0.1875};
-
-        // Count occurrences of the longest runs
-        int[] observedRuns = new int[expectedRuns.length];
-        for (int i = 0; i < numberOfBlocks; i++) {
-            String block = binarySequence.substring(i * blockSize, (i + 1) * blockSize);
-            int longestRun = longestRunOfOnes(block);
-
-            // Map the longest run to the expected categories
-            if (longestRun >= 1 && longestRun <= 4) {
-                observedRuns[longestRun - 1]++;
-            } else if (longestRun > 4) {
-                observedRuns[3]++;
-            }
-        }
-
-        // Perform chi-squared test
-        double chiSquareStatisticObserved = 0.0;
-        for (int i = 0; i < expectedRuns.length; i++) {
-            double expectedCount = probabilities[i] * numberOfBlocks;
-            chiSquareStatisticObserved += Math.pow(observedRuns[i] - expectedCount, 2) / expectedCount;
-        }
-
-        return chiSquareStatisticObserved;
-    }
-
-    // Function to find the longest run of 1's in a block
-    public static int longestRunOfOnes(String block) {
-        int maxRun = 0;
-        int currentRun = 0;
-
-        for (char bit : block.toCharArray()) {
-            if (bit == '1') {
-                currentRun++;
-                if (currentRun > maxRun) {
-                    maxRun = currentRun;
-                }
-            } else {
-                currentRun = 0;
-            }
-        }
-        return maxRun;
     }
 
     private int getNonOverlappingBlocks(int lengthOfTheBitString, int lengthOfEachBlock) {
