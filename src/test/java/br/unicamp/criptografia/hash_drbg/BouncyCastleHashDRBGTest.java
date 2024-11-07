@@ -27,7 +27,7 @@ public class BouncyCastleHashDRBGTest {
     public static void before() {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
-        bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString, 128);
+        bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
         randomBytes = bouncyCastle.generateRandomBytes();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
@@ -214,7 +214,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void testForTheLongestRunOfOnesInABlock_Bouncy_Castle() {
-        double pValue = getRunsTestPValue(bouncyCastleRandomBits);
+        double pValue = getTestForTheLongestRunOfOnesInABlockPValue(bouncyCastleRandomBits, bouncyCastle.getBlockSize());
         assertThat(pValue, greaterThanOrEqualTo(BASE_P_VALUE));
     }
 

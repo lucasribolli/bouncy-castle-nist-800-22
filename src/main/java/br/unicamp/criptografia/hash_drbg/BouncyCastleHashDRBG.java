@@ -8,17 +8,15 @@ import org.bouncycastle.crypto.prng.drbg.HashSP800DRBG;
 import java.security.SecureRandom;
 
 public class BouncyCastleHashDRBG {
+    private static final int SECURITY_STRENGTH_BITS = 256;
+    private static final int SECURITY_STRENGTH_BYTES = SECURITY_STRENGTH_BITS / 8;
     private final String mNonce;
     private final String mPersonalizationString;
-    private HashSP800DRBG hashDrbg;
-    private int mSecurityStrengthBits;
-    private int mSecurityStrengthBytes;
+    private HashSP800DRBG drbg;
 
-    public BouncyCastleHashDRBG(String nonce, String personalizationString, int securityStrengthBits) {
+    public BouncyCastleHashDRBG(String nonce, String personalizationString) {
         mNonce = nonce;
         mPersonalizationString = personalizationString;
-        mSecurityStrengthBits = securityStrengthBits;
-        mSecurityStrengthBytes = securityStrengthBits / 8;
     }
 
     public byte[] generateRandomBytes() {
@@ -28,27 +26,27 @@ public class BouncyCastleHashDRBG {
         byte[] nonce = mNonce.getBytes();
         byte[] personalizationString = mPersonalizationString.getBytes();
 
-        hashDrbg = new HashSP800DRBG(
+        drbg = new HashSP800DRBG(
                 digest,
-                mSecurityStrengthBits,
-                entropySourceProvider.get(mSecurityStrengthBits),
+                SECURITY_STRENGTH_BITS,
+                entropySourceProvider.get(SECURITY_STRENGTH_BITS),
                 nonce,
                 personalizationString
         );
 
-        byte[] randomBytes = new byte[mSecurityStrengthBytes];
-        int numberOfGeneratedBits = hashDrbg.generate(randomBytes, null, false);
+        byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
+        int numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
 
         while (numberOfGeneratedBits == -1) {
             System.out.println("Erro na geração de bytes aleatórios, precisa de um reseed");
-            numberOfGeneratedBits = hashDrbg.generate(randomBytes, null, false);
+            numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
         }
 
         return randomBytes;
     }
 
     public int getBlockSize() {
-        return hashDrbg.getBlockSize();
+        return drbg.getBlockSize();
     }
 
     private static EntropySourceProvider getEntropySourceProvider() {
