@@ -283,7 +283,7 @@ public class BouncyCastleHashDRBGTest {
         int sizeOfFrequencies = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
         Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
 
-        for (int i = 0; i <= sizeOfFrequencies; i++) {
+        for (int i = 1; i <= sizeOfFrequencies + 1; i++) {
             int finalI = i;
             int currentMaxRun = (int) maxRuns.stream().filter(integer -> integer == finalI).count();
             frequencies.add(currentMaxRun);
@@ -292,32 +292,34 @@ public class BouncyCastleHashDRBGTest {
         log(logTag, 2, "frequencies: " + frequencies);
 
         double chiSquareStatisticObserved = 0.0;
-        for (int i = 0; i < sizeOfFrequencies; i++) {
+        for (int i = 0; i <= sizeOfFrequencies; i++) {
             int currentFrequency = frequencies.get(i);
-            int k = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
             int n = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 2);
-            double[][] frequencyByProbability = getProbabilitiesFromKAndM(k, lengthOfEachBlock);
-            double probability = 0.0;
-            for (int p = 0; p < frequencyByProbability.length; p++) {
-                double[] currentFrequencyByProbability = frequencyByProbability[p];
-                int frequency = (int) currentFrequencyByProbability[0];
-                if (p == 0 && currentFrequency <= frequency) {
-                    probability = currentFrequencyByProbability[1];
-                    break;
-                }
-                if (p == frequencyByProbability.length - 1) {
-
-                }
-            }
+            double[][] preSetFrequencyByProbability = getProbabilitiesFromKAndM(sizeOfFrequencies, lengthOfEachBlock);
+            double probability = preSetFrequencyByProbability[i][1];
+//            for (int p = 0; p < preSetFrequencyByProbability.length; p++) {
+//                double[] currentPreSetFrequencyByProbability = preSetFrequencyByProbability[p];
+//                int preSetFrequency = (int) currentPreSetFrequencyByProbability[0];
+//                if ((p == 0 && currentFrequency <= preSetFrequency) ||
+//                        (p == preSetFrequencyByProbability.length - 1 && currentFrequency >= preSetFrequency)) {
+//                    probability = currentPreSetFrequencyByProbability[1];
+//                    break;
+//                } else if (currentFrequency == preSetFrequency) {
+//                    probability = currentPreSetFrequencyByProbability[1];
+//                }
+//            }
             double nByProbability = n * probability;
             double divisor = Math.pow(currentFrequency - nByProbability, 2);
             chiSquareStatisticObserved += divisor / nByProbability;
         }
 
-        return testLongestRunOfOnes(randomBits, lengthOfEachBlock, nonOverlappingBlocks);
+        log(logTag, 2, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
 
-
-//        return 0.0;
+        // 2.4.4 (4)
+        // igamc: Complementary Incomplete Gamma Function
+        double pValue = Gamma.regularizedGammaQ((double) sizeOfFrequencies / 2, chiSquareStatisticObserved / 2);
+        log(logTag, 4, "pValue: " + pValue);
+        return pValue;
     }
 
     private Integer getColumnFromFirstValue(Integer[][] matrix, int target, int column) {
