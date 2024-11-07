@@ -295,8 +295,8 @@ public class BouncyCastleHashDRBGTest {
         for (int i = 0; i <= sizeOfFrequencies; i++) {
             int currentFrequency = frequencies.get(i);
             int n = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 2);
-            double[][] preSetFrequencyByProbability = getProbabilitiesFromKAndM(sizeOfFrequencies, lengthOfEachBlock);
-            double probability = preSetFrequencyByProbability[i][1];
+            double[] preSetFrequencyByProbability = getProbabilitiesFromKAndM(sizeOfFrequencies, lengthOfEachBlock);
+            double probability = preSetFrequencyByProbability[i];
             double nByProbability = n * probability;
             double divisor = Math.pow(currentFrequency - nByProbability, 2);
             chiSquareStatisticObserved += divisor / nByProbability;
@@ -327,17 +327,16 @@ public class BouncyCastleHashDRBGTest {
      * @param m block size
      * @return the class by probability, where the first needs to be compared as <= and the last as >=
      */
-    private double[][] getProbabilitiesFromKAndM(int k, int m) {
-        // TODO insert all 5 cases
+    private double[] getProbabilitiesFromKAndM(int k, int m) {
         if (k == 3 && m == 8) {
-            return new double[][] {
-                { 1, 0.2148 },
-                { 2, 0.3672 },
-                { 3, 0.2305 },
-                { 4, 0.1875 }
+            return new double[] {
+                0.2148,
+                0.3672,
+                0.2305,
+                0.1875
             };
         }
-        return new double[][]{};
+        return new double[]{};
     }
 
     private int getNonOverlappingBlocks(int lengthOfTheBitString, int lengthOfEachBlock) {
