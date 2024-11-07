@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Vector;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
@@ -281,7 +280,7 @@ public class BouncyCastleHashDRBGTest {
 
         log(logTag, 2, "maxRuns: " + maxRuns);
 
-        int sizeOfFrequencies = getSecondColumnValue(preSetMKN, lengthOfEachBlock);
+        int sizeOfFrequencies = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
         Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
 
         for (int i = 0; i <= sizeOfFrequencies; i++) {
@@ -292,19 +291,62 @@ public class BouncyCastleHashDRBGTest {
 
         log(logTag, 2, "frequencies: " + frequencies);
 
+        double chiSquareStatisticObserved = 0.0;
+        for (int i = 0; i < sizeOfFrequencies; i++) {
+            int currentFrequency = frequencies.get(i);
+            int k = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
+            int n = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 2);
+            double[][] frequencyByProbability = getProbabilitiesFromKAndM(k, lengthOfEachBlock);
+            double probability = 0.0;
+            for (int p = 0; p < frequencyByProbability.length; p++) {
+                double[] currentFrequencyByProbability = frequencyByProbability[p];
+                int frequency = (int) currentFrequencyByProbability[0];
+                if (p == 0 && currentFrequency <= frequency) {
+                    probability = currentFrequencyByProbability[1];
+                    break;
+                }
+                if (p == frequencyByProbability.length - 1) {
+
+                }
+            }
+            double nByProbability = n * probability;
+            double divisor = Math.pow(currentFrequency - nByProbability, 2);
+            chiSquareStatisticObserved += divisor / nByProbability;
+        }
+
         return testLongestRunOfOnes(randomBits, lengthOfEachBlock, nonOverlappingBlocks);
 
 
 //        return 0.0;
     }
 
-    private Integer getSecondColumnValue(Integer[][] matrix, int target) {
+    private Integer getColumnFromFirstValue(Integer[][] matrix, int target, int column) {
         for (Integer[] row : matrix) {
             if (row[0] == target) {
-                return row[1];
+                return row[column];
             }
         }
         throw new InvalidParameterException("Invalid block size");
+    }
+
+    /**
+     * pre-defined probabilities from NIST 800-22A
+     *
+     * @param k pre-set
+     * @param m block size
+     * @return the class by probability, where the first needs to be compared as <= and the last as >=
+     */
+    private double[][] getProbabilitiesFromKAndM(int k, int m) {
+        // TODO insert all 5 cases
+        if (k == 3 && m == 8) {
+            return new double[][] {
+                { 1, 0.2148 },
+                { 2, 0.3672 },
+                { 3, 0.2305 },
+                { 4, 0.1875 }
+            };
+        }
+        return new double[][]{};
     }
 
 
