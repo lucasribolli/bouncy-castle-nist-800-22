@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -99,7 +101,7 @@ public class BouncyCastleHashDRBGTest {
         // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfTheBitString, lengthOfEachBlock);
-        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks);
+        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
 
         log(logTag, 1, "blocks: " + blocks);
 
@@ -223,6 +225,8 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getTestForTheLongestRunOfOnesInABlockPValue(String randomBits, int lengthOfEachBlock) {
+        String logTag = "2.4.4";
+
         int lengthOfBitString = randomBits.length();
 
         Integer[][] preSetMinimumLengthOfBitStringByLengthOfEachBlock = {
@@ -245,38 +249,62 @@ public class BouncyCastleHashDRBGTest {
 
         // 2.4.4 (1)
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfBitString, lengthOfEachBlock);
-        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks);
+        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
 
-        // 2.4.4 (2)
-//        int[][] frequenciesOfTheLongestRunsOfOnes = {
-//                {1, 4, 3, 4},
-//                {4, 5, 6, 7, 8, 9},
-//                {10, 11, 12, 13, 14, 15, 16}
-//        };
-        Integer[][] frequenciesOfTheLongestRunsOfOnes = {
-            //  M=8, M=128, M=10⁴
-                {1, 4, 10},
-                {2, 5, 11},
-                {3, 6, 12},
-                {4, 7, 13},
-                {null, 8, 14},
-                {null, 9, 15},
-                {null, null, 16}
-        };
+        log(logTag, 1, "nonOverlappingBlocks: " + nonOverlappingBlocks);
+        log(logTag, 1, "blocks: " + blocks);
 
-
-        // 2.4.4 (3)
         Integer[][] preSetMKN = {
                 {8, 3, 16},
                 {128, 5, 49},
                 {(int) Math.pow(10, 4), 6, 75}
         };
 
+        ArrayList<Integer> maxRuns = new ArrayList<>(lengthOfEachBlock);
+        for (String block : blocks) {
+            int maxRun = 0;
+            int currentRun = 0;
+            for (int i = 0; i < block.length(); i++) {
+                char bit = block.charAt(i);
+                if (bit == '1') {
+                    currentRun++;
+                }
+                if (currentRun > maxRun) {
+                    maxRun = currentRun;
+                }
+                if (bit == '0') {
+                    currentRun = 0;
+                }
+            }
+            maxRuns.add(maxRun);
+        }
+
+        log(logTag, 2, "maxRuns: " + maxRuns);
+
+        int sizeOfFrequencies = getSecondColumnValue(preSetMKN, lengthOfEachBlock);
+        Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
+
+        for (int i = 0; i <= sizeOfFrequencies; i++) {
+            int finalI = i;
+            int currentMaxRun = (int) maxRuns.stream().filter(integer -> integer == finalI).count();
+            frequencies.add(currentMaxRun);
+        }
+
+        log(logTag, 2, "frequencies: " + frequencies);
 
         return testLongestRunOfOnes(randomBits, lengthOfEachBlock, nonOverlappingBlocks);
 
 
 //        return 0.0;
+    }
+
+    private Integer getSecondColumnValue(Integer[][] matrix, int target) {
+        for (Integer[] row : matrix) {
+            if (row[0] == target) {
+                return row[1];
+            }
+        }
+        throw new InvalidParameterException("Invalid block size");
     }
 
 
@@ -331,7 +359,7 @@ public class BouncyCastleHashDRBGTest {
         return lengthOfTheBitString / lengthOfEachBlock;
     }
 
-    private ArrayList<String> getBlocks(String randomBits, int nonOverlappingBlocks) {
+    private ArrayList<String> getBlocks(String randomBits, int nonOverlappingBlocks, int blockSize) {
         int lengthOfTheBitString = randomBits.length();
         ArrayList<String> blocks = new ArrayList<>(nonOverlappingBlocks);
         int blockCount = 1;
@@ -341,7 +369,7 @@ public class BouncyCastleHashDRBGTest {
             char currentBit = randomBits.charAt(bitIndex);
             currentBlock.append(currentBit);
 
-            if (blockCount == nonOverlappingBlocks) {
+            if (blockCount == blockSize) {
                 blocks.add(String.valueOf(currentBlock));
                 blockCount = 1;
                 currentBlock = new StringBuilder();
