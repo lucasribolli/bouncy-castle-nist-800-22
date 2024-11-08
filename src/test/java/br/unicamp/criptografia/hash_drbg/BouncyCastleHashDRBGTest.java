@@ -16,10 +16,11 @@ import static org.junit.Assert.assertFalse;
 
 public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
-    private static final String NIST_EXAMPLE_RANDOM_BITS_100_BITS = "11001001000011111101101010100010001000010110100" +
+    private static final String NIST_EXAMPLE_RANDOM_100_BITS = "11001001000011111101101010100010001000010110100" +
             "01100001000110100110001001100011001100010100010111000";
-    private static final String NIST_EXAMPLE_RANDOM_BITS_128_BITS = "11001100000101010110110001001100111000000000001" +
+    private static final String NIST_EXAMPLE_RANDOM_128_BITS = "11001100000101010110110001001100111000000000001" +
             "001001101010100010001001111010110100000001101011111001100111001101101100010110010";
+    private static final String NIST_EXAMPLE_RANDOM_20_BITS = "01011001001010101101";
     private static BouncyCastleHashDRBG bouncyCastle;
     private static byte[] randomBytes;
     private static String bouncyCastleRandomBits;
@@ -35,7 +36,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyMonobitTest_NIST_Example() {
-        double pValue = getFrequencyMonobitPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS);
+        double pValue = getFrequencyMonobitPValue(NIST_EXAMPLE_RANDOM_100_BITS);
         nistPValueAssertion(pValue);
     }
 
@@ -84,7 +85,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void frequencyTestWithinABlock_NIST_Example() {
-        double pValue = getBlockFrequencyPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS, 10);
+        double pValue = getBlockFrequencyPValue(NIST_EXAMPLE_RANDOM_100_BITS, 10);
         nistPValueAssertion(pValue);
     }
 
@@ -146,7 +147,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void runsTest_NIST_Example() {
-        double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_BITS_100_BITS);
+        double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_100_BITS);
         nistPValueAssertion(pValue);
     }
 
@@ -219,7 +220,7 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void testForTheLongestRunOfOnesInABlock_NIST_Example() {
-        double pValue = getTestForTheLongestRunOfOnesInABlockPValue(NIST_EXAMPLE_RANDOM_BITS_128_BITS, 8);
+        double pValue = getTestForTheLongestRunOfOnesInABlockPValue(NIST_EXAMPLE_RANDOM_128_BITS, 8);
         nistPValueAssertion(pValue);
     }
 
@@ -382,11 +383,57 @@ public class BouncyCastleHashDRBGTest {
 
     @Test
     public void binaryMatrixRankTest_NIST_Example() {
-
+        double pValue = getBinaryMatrixRankTestPValue(NIST_EXAMPLE_RANDOM_20_BITS, true);
     }
 
-    private double getBinaryMatrixRankTestPValue(String randomBits) {
+    private double getBinaryMatrixRankTestPValue(String randomBits, boolean isANistExample) {
+        String logTag = "2.5.4";
+
         int lengthOfTheBitString = randomBits.length();
+        int numberOfMatrixRowsM, numberOfMatrixColumnsQ;
+        numberOfMatrixRowsM = numberOfMatrixColumnsQ = 32;
+        int minimumLength = 38 * numberOfMatrixRowsM * numberOfMatrixColumnsQ;
+
+        if (isANistExample && lengthOfTheBitString < minimumLength) {
+            numberOfMatrixRowsM = numberOfMatrixColumnsQ = 3;
+        } else if (lengthOfTheBitString < minimumLength) {
+            throw new InvalidParameterException("lengthOfTheBitString is less than the minimum recommended: "
+                    + minimumLength);
+        }
+
+        // 2.5.4 (1)
+        double disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
+        /*
+        [
+            [ [ 0 0 0 ],   [ [ 0 0 0 ],
+              [ 0 0 0 ],     [ 0 0 0 ],
+              [ 0 0 0 ] ],   [ 0 0 0 ] ]
+         ]
+         */
+        ArrayList<ArrayList<ArrayList<Integer>>> matrices = new ArrayList<>();
+        int currentBitIndex = 0;
+        int currentBit;
+        ArrayList<ArrayList<Integer>> rows = new ArrayList<>();
+        boolean hasFinished = false;
+        while (!hasFinished) {
+            ArrayList<Integer> column = new ArrayList<>();
+            for (int columnIndex = 0; columnIndex < numberOfMatrixColumnsQ; columnIndex++) {
+                currentBit = Integer.parseInt(String.valueOf(randomBits.charAt(currentBitIndex)));
+                column.add(currentBit);
+                currentBitIndex++;
+            }
+            rows.add(column);
+            if (rows.size() == numberOfMatrixRowsM) {
+                matrices.add(rows);
+                rows = new ArrayList<>();
+            }
+            if (matrices.size() == disjointBlocksN) {
+                hasFinished = true;
+            }
+        }
+
+        log(logTag, 1, "matrices: " + matrices);
+
 
         return 0.0;
     }
