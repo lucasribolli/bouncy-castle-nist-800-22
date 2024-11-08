@@ -434,8 +434,39 @@ public class BouncyCastleHashDRBGTest {
 
         log(logTag, 1, "matrices: " + matrices);
 
+        // 2.5.4 (2)
+        ArrayList<Integer> binaryRanks = new ArrayList<>();
+        for (ArrayList<ArrayList<Integer>> matrix : matrices) {
+            int ranks = getBinaryRankOfMatrix(matrix, numberOfMatrixRowsM, numberOfMatrixColumnsQ);
+            binaryRanks.add(ranks);
+        }
+
+        log(logTag, 2, "ranks: " + binaryRanks);
 
         return 0.0;
+    }
+
+    /**
+     * It calculates the linearly independent of each row.
+     * | 0 1 0 |
+     * | 1 1 0 | = 2 (two lines are different)
+     * | 0 1 0 |
+     * __________________________________________________
+     * | 0 1 0 |
+     * | 1 0 1 | = 3 (three lines are different)
+     * | 0 1 1 |
+     * @param matrix to be calculated
+     * @return binary rank
+     */
+    private int getBinaryRankOfMatrix(ArrayList<ArrayList<Integer>> matrix, int rowsSize, int columnsSize) {
+        int rank = 1;
+        ArrayList<Integer> rowToBeCompared = matrix.getFirst();
+        for (int row = 1; row < rowsSize; row++) {
+            if (!rowToBeCompared.equals(matrix.get(row))) {
+                rank++;
+            }
+        }
+        return rank;
     }
 
     private int getNonOverlappingBlocks(int lengthOfTheBitString, int lengthOfEachBlock) {
