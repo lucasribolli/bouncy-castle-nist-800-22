@@ -19,7 +19,15 @@ public class BouncyCastleHashDRBG {
         mPersonalizationString = personalizationString;
     }
 
-    public byte[] generateRandomBytes() {
+    public byte[] generateDefaultRandomBytes() {
+        return generate(SECURITY_STRENGTH_BYTES);
+    }
+
+    public byte[] generateRandomBytesFromSecurityStrengthBits(int securityStrengthBits) {
+        return generate(securityStrengthBits / 8);
+    }
+
+    private byte[] generate(int securityStrengthBytes) {
         EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
         SHA256Digest digest = new SHA256Digest();
@@ -34,12 +42,13 @@ public class BouncyCastleHashDRBG {
                 personalizationString
         );
 
-        byte[] randomBytes = new byte[SECURITY_STRENGTH_BYTES];
-        int numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
+        byte[] randomBytes = new byte[securityStrengthBytes];
+        boolean predictionResistant = true;
+        int numberOfGeneratedBits = drbg.generate(randomBytes, null, predictionResistant);
 
         while (numberOfGeneratedBits == -1) {
             System.out.println("Erro na geração de bytes aleatórios, precisa de um reseed");
-            numberOfGeneratedBits = drbg.generate(randomBytes, null, false);
+            numberOfGeneratedBits = drbg.generate(randomBytes, null, predictionResistant);
         }
 
         return randomBytes;

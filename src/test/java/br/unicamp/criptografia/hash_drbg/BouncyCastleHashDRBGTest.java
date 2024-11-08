@@ -5,6 +5,7 @@ import org.apache.commons.math3.special.Gamma;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -30,7 +31,7 @@ public class BouncyCastleHashDRBGTest {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
         bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-        randomBytes = bouncyCastle.generateRandomBytes();
+        randomBytes = bouncyCastle.generateRandomBytesFromSecurityStrengthBits(100000);
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
@@ -382,8 +383,24 @@ public class BouncyCastleHashDRBGTest {
     }
 
     @Test
+    public void binaryMatrixRankTest_Bouncy_Castle() {
+        double pValue = getBinaryMatrixRankTestPValue(bouncyCastleRandomBits, false);
+        nistPValueAssertion(pValue);
+    }
+
+    @Test
+    public void binaryMatrixRankTest_NIST_Euler_Example() {
+        BigDecimal euler = EulerNumber.getVeryLargeBits();
+        String bits = CryptoHelper.bytesToBits(CryptoHelper.bigDecimalToBytes(euler));
+        bits = bits.substring(0, 100000);
+        double pValue = getBinaryMatrixRankTestPValue(bits, false);
+        nistPValueAssertion(pValue);
+    }
+
+    @Test
     public void binaryMatrixRankTest_NIST_Example() {
         double pValue = getBinaryMatrixRankTestPValue(NIST_EXAMPLE_RANDOM_20_BITS, true);
+        nistPValueAssertion(pValue);
     }
 
     private double getBinaryMatrixRankTestPValue(String randomBits, boolean isANistExample) {
@@ -432,7 +449,9 @@ public class BouncyCastleHashDRBGTest {
             }
         }
 
-        log(logTag, 1, "matrices: " + matrices);
+        if (isANistExample) {
+            log(logTag, 1, "matrices: " + matrices);
+        }
 
         // 2.5.4 (2)
         ArrayList<Integer> binaryRanks = new ArrayList<>();
@@ -441,7 +460,9 @@ public class BouncyCastleHashDRBGTest {
             binaryRanks.add(ranks);
         }
 
-        log(logTag, 2, "ranks: " + binaryRanks);
+        if (isANistExample) {
+            log(logTag, 2, "ranks: " + binaryRanks);
+        }
 
         int fullRank = 0;
         int fullRankLessOne = 0;
@@ -455,14 +476,22 @@ public class BouncyCastleHashDRBGTest {
 
         int matricesRemaining = disjointBlocksN - fullRank - fullRankLessOne;
 
-        log(logTag, 2, "fullRank: " + fullRank);
-        log(logTag, 2, "fullRankLessOne: " + fullRankLessOne);
-        log(logTag, 2, "matricesRemaining: " + matricesRemaining);
+        log(logTag, 3, "fullRank: " + fullRank);
+        log(logTag, 3, "fullRankLessOne: " + fullRankLessOne);
+        log(logTag, 3, "matricesRemaining: " + matricesRemaining);
 
-        // 2.5.4 (3)
+        // 2.5.4 (4)
+        double chiSquareStatisticObserved = (Math.pow((fullRank - (0.2888 * disjointBlocksN)), 2) / (0.2888 * disjointBlocksN))
+                + (Math.pow((fullRankLessOne - (0.5776 * disjointBlocksN)), 2) / (0.5776 * disjointBlocksN))
+                + (Math.pow((matricesRemaining - (0.1336 * disjointBlocksN)), 2) / (0.1336 * disjointBlocksN));
 
+        log(logTag, 4, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
 
-        return 0.0;
+        // 2.5.4 (5)
+        double pValue = Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
+        log(logTag, 5, "pValue: " + pValue);
+
+        return pValue;
     }
 
     /**

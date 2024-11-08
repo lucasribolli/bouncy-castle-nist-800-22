@@ -1,7 +1,8 @@
 package br.unicamp.criptografia.hash_drbg;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class CryptoHelper {
@@ -66,5 +67,10 @@ public class CryptoHelper {
             string.append(randomUUID);
         }
         return string.toString();
+    }
+
+    public static byte[] bigDecimalToBytes(BigDecimal bigDecimal) {
+        BigInteger unscaledValue = bigDecimal.unscaledValue();
+        return unscaledValue.toByteArray();
     }
 }
