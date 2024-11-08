@@ -402,7 +402,7 @@ public class BouncyCastleHashDRBGTest {
         }
 
         // 2.5.4 (1)
-        double disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
+        int disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
         /*
         [
             [ [ 0 0 0 ],   [ [ 0 0 0 ],
@@ -437,11 +437,30 @@ public class BouncyCastleHashDRBGTest {
         // 2.5.4 (2)
         ArrayList<Integer> binaryRanks = new ArrayList<>();
         for (ArrayList<ArrayList<Integer>> matrix : matrices) {
-            int ranks = getBinaryRankOfMatrix(matrix, numberOfMatrixRowsM, numberOfMatrixColumnsQ);
+            int ranks = getBinaryRankOfMatrix(matrix, numberOfMatrixRowsM);
             binaryRanks.add(ranks);
         }
 
         log(logTag, 2, "ranks: " + binaryRanks);
+
+        int fullRank = 0;
+        int fullRankLessOne = 0;
+        for (Integer binaryRank : binaryRanks) {
+            if (binaryRank == numberOfMatrixRowsM) {
+                fullRank++;
+            } else if (binaryRank == numberOfMatrixRowsM - 1) {
+                fullRankLessOne++;
+            }
+        }
+
+        int matricesRemaining = disjointBlocksN - fullRank - fullRankLessOne;
+
+        log(logTag, 2, "fullRank: " + fullRank);
+        log(logTag, 2, "fullRankLessOne: " + fullRankLessOne);
+        log(logTag, 2, "matricesRemaining: " + matricesRemaining);
+
+        // 2.5.4 (3)
+
 
         return 0.0;
     }
@@ -458,7 +477,7 @@ public class BouncyCastleHashDRBGTest {
      * @param matrix to be calculated
      * @return binary rank
      */
-    private int getBinaryRankOfMatrix(ArrayList<ArrayList<Integer>> matrix, int rowsSize, int columnsSize) {
+    private int getBinaryRankOfMatrix(ArrayList<ArrayList<Integer>> matrix, int rowsSize) {
         int rank = 1;
         ArrayList<Integer> rowToBeCompared = matrix.getFirst();
         for (int row = 1; row < rowsSize; row++) {
