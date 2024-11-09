@@ -413,26 +413,6 @@ public class BouncyCastleHashDRBGTest {
         // 2.5.4 (1)
         int disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
         ArrayList<ArrayList<ArrayList<Integer>>> matrices = new ArrayList<>();
-        int currentBitIndex = 0;
-        int currentBit;
-        ArrayList<ArrayList<Integer>> rows = new ArrayList<>();
-        boolean hasFinished = false;
-        while (!hasFinished) {
-            ArrayList<Integer> column = new ArrayList<>();
-            for (int columnIndex = 0; columnIndex < numberOfMatrixColumnsQ; columnIndex++) {
-                currentBit = Integer.parseInt(String.valueOf(randomBits.charAt(currentBitIndex)));
-                column.add(currentBit);
-                currentBitIndex++;
-            }
-            rows.add(column);
-            if (rows.size() == numberOfMatrixRowsM) {
-                matrices.add(rows);
-                rows = new ArrayList<>();
-            }
-            if (matrices.size() == disjointBlocksN) {
-                hasFinished = true;
-            }
-        }
 
         if (isANistExample) {
             log(logTag, 1, "matrices: " + matrices);
@@ -487,27 +467,35 @@ public class BouncyCastleHashDRBGTest {
         return new int[]{fullRankCount, deficientRankCount, lowerRankCount};
     }
 
-    public static boolean[][] getSubMatrix(String sequence, int blockIndex, int M, int Q) {
-        boolean[][] matrix = new boolean[M][Q];
-        int start = blockIndex * M * Q;
+    public static boolean[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
+        boolean[][] matrix = new boolean[rowsM][columnsQ];
+        int start = blockIndex * rowsM * columnsQ;
 
-        for (int i = 0; i < M; i++) {
-            for (int j = 0; j < Q; j++) {
-                int index = start + i * Q + j;
+        for (int i = 0; i < rowsM; i++) {
+            for (int j = 0; j < columnsQ; j++) {
+                int index = start + i * columnsQ + j;
                 matrix[i][j] = sequence.charAt(index) == '1';
             }
         }
         return matrix;
     }
 
-    public static int calculateRank(boolean[][] matrix, int M, int Q) {
+    /**
+     * It calculates the max number of lines or columns linearly independent of the matrix using Gaussian elimination.
+     * @param matrix matrix of boolean values
+     * @param rows number of rows
+     * @param columns number of columns
+     * @return max rank calculated
+     */
+    public static int calculateRank(boolean[][] matrix, int rows, int columns) {
         int rank = 0;
-        int minDimension = Math.min(M, Q);
 
-        for (int row = 0; row < minDimension; row++) {
-            if (!matrix[row][row]) {
+        for (int row = 0; row < rows; row++) {
+            boolean pivotElement = !matrix[row][row];
+            if (!pivotElement) {
+                // searching for an appropriate true pivot element value
                 boolean swapped = false;
-                for (int i = row + 1; i < M; i++) {
+                for (int i = row + 1; i < rows; i++) {
                     if (matrix[i][row]) {
                         boolean[] temp = matrix[row];
                         matrix[row] = matrix[i];
@@ -516,13 +504,16 @@ public class BouncyCastleHashDRBGTest {
                         break;
                     }
                 }
-                if (!swapped) continue;
+                if (!swapped) {
+                    continue;
+                }
             }
 
-            for (int i = row + 1; i < M; i++) {
+            for (int i = row + 1; i < rows; i++) {
                 if (matrix[i][row]) {
-                    for (int j = row; j < Q; j++) {
-                        matrix[i][j] ^= matrix[row][j];
+                    for (int j = row; j < columns; j++) {
+                        // XOR operation
+                        matrix[i][j] = matrix[i][j] ^ matrix[row][j];
                     }
                 }
             }
