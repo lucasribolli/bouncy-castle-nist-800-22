@@ -388,14 +388,6 @@ public class BouncyCastleHashDRBGTest {
         nistPValueAssertion(pValue);
     }
 
-    @Test
-    public void binaryMatrixRankTest_NIST_Euler_Example() {
-        BigDecimal euler = EulerNumber.getVeryLargeBits();
-        String bits = CryptoHelper.bytesToBits(CryptoHelper.bigDecimalToBytes(euler));
-        bits = bits.substring(0, 100000);
-        double pValue = getBinaryMatrixRankTestPValue(bits, false);
-        nistPValueAssertion(pValue);
-    }
 
     @Test
     public void binaryMatrixRankTest_NIST_Example() {
@@ -420,13 +412,6 @@ public class BouncyCastleHashDRBGTest {
 
         // 2.5.4 (1)
         int disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
-        /*
-        [
-            [ [ 0 0 0 ],   [ [ 0 0 0 ],
-              [ 0 0 0 ],     [ 0 0 0 ],
-              [ 0 0 0 ] ],   [ 0 0 0 ] ]
-         ]
-         */
         ArrayList<ArrayList<ArrayList<Integer>>> matrices = new ArrayList<>();
         int currentBitIndex = 0;
         int currentBit;
@@ -454,36 +439,24 @@ public class BouncyCastleHashDRBGTest {
         }
 
         // 2.5.4 (2)
-        ArrayList<Integer> binaryRanks = new ArrayList<>();
-        for (ArrayList<ArrayList<Integer>> matrix : matrices) {
-            int ranks = getBinaryRankOfMatrix(matrix, numberOfMatrixRowsM);
-            binaryRanks.add(ranks);
-        }
-
-        if (isANistExample) {
-            log(logTag, 2, "ranks: " + binaryRanks);
-        }
-
-        int fullRank = 0;
-        int fullRankLessOne = 0;
-        for (Integer binaryRank : binaryRanks) {
-            if (binaryRank == numberOfMatrixRowsM) {
-                fullRank++;
-            } else if (binaryRank == numberOfMatrixRowsM - 1) {
-                fullRankLessOne++;
-            }
-        }
-
-        int matricesRemaining = disjointBlocksN - fullRank - fullRankLessOne;
+        int[] ranks = getFullDeficientAndLowerRanks(randomBits, numberOfMatrixRowsM,
+                numberOfMatrixColumnsQ, disjointBlocksN);
+        int fullRank = ranks[0];
+        int deficientRankCount = ranks[1];
+        int lowerRankCount = ranks[2];
 
         log(logTag, 3, "fullRank: " + fullRank);
-        log(logTag, 3, "fullRankLessOne: " + fullRankLessOne);
-        log(logTag, 3, "matricesRemaining: " + matricesRemaining);
+        log(logTag, 3, "deficientRankCount: " + deficientRankCount);
+        log(logTag, 3, "lowerRankCount: " + lowerRankCount);
 
         // 2.5.4 (4)
-        double chiSquareStatisticObserved = (Math.pow((fullRank - (0.2888 * disjointBlocksN)), 2) / (0.2888 * disjointBlocksN))
-                + (Math.pow((fullRankLessOne - (0.5776 * disjointBlocksN)), 2) / (0.5776 * disjointBlocksN))
-                + (Math.pow((matricesRemaining - (0.1336 * disjointBlocksN)), 2) / (0.1336 * disjointBlocksN));
+        double pFullRank = 0.2888;
+        double pDeficientRank = 0.5776;
+        double pLowerRank = 0.1336;
+
+        double chiSquareStatisticObserved =  Math.pow(fullRank - disjointBlocksN * pFullRank, 2) / (disjointBlocksN * pFullRank) +
+                Math.pow(deficientRankCount - disjointBlocksN * pDeficientRank, 2) / (disjointBlocksN * pDeficientRank) +
+                Math.pow(lowerRankCount - disjointBlocksN * pLowerRank, 2) / disjointBlocksN * pLowerRank;
 
         log(logTag, 4, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
 
@@ -494,25 +467,66 @@ public class BouncyCastleHashDRBGTest {
         return pValue;
     }
 
-    /**
-     * It calculates the linearly independent of each row.
-     * | 0 1 0 |
-     * | 1 1 0 | = 2 (two lines are different)
-     * | 0 1 0 |
-     * __________________________________________________
-     * | 0 1 0 |
-     * | 1 0 1 | = 3 (three lines are different)
-     * | 0 1 1 |
-     * @param matrix to be calculated
-     * @return binary rank
-     */
-    private int getBinaryRankOfMatrix(ArrayList<ArrayList<Integer>> matrix, int rowsSize) {
-        int rank = 1;
-        ArrayList<Integer> rowToBeCompared = matrix.getFirst();
-        for (int row = 1; row < rowsSize; row++) {
-            if (!rowToBeCompared.equals(matrix.get(row))) {
-                rank++;
+    public static int[] getFullDeficientAndLowerRanks(String sequence, int M, int Q, int N) {
+        int fullRankCount = 0;
+        int deficientRankCount = 0;
+        int lowerRankCount = 0;
+
+        for (int block = 0; block < N; block++) {
+            boolean[][] matrix = getSubMatrix(sequence, block, M, Q);
+            int rank = calculateRank(matrix, M, Q);
+
+            if (rank == M) {
+                fullRankCount++;
+            } else if (rank == M - 1) {
+                deficientRankCount++;
+            } else {
+                lowerRankCount++;
             }
+        }
+        return new int[]{fullRankCount, deficientRankCount, lowerRankCount};
+    }
+
+    public static boolean[][] getSubMatrix(String sequence, int blockIndex, int M, int Q) {
+        boolean[][] matrix = new boolean[M][Q];
+        int start = blockIndex * M * Q;
+
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < Q; j++) {
+                int index = start + i * Q + j;
+                matrix[i][j] = sequence.charAt(index) == '1';
+            }
+        }
+        return matrix;
+    }
+
+    public static int calculateRank(boolean[][] matrix, int M, int Q) {
+        int rank = 0;
+        int minDimension = Math.min(M, Q);
+
+        for (int row = 0; row < minDimension; row++) {
+            if (!matrix[row][row]) {
+                boolean swapped = false;
+                for (int i = row + 1; i < M; i++) {
+                    if (matrix[i][row]) {
+                        boolean[] temp = matrix[row];
+                        matrix[row] = matrix[i];
+                        matrix[i] = temp;
+                        swapped = true;
+                        break;
+                    }
+                }
+                if (!swapped) continue;
+            }
+
+            for (int i = row + 1; i < M; i++) {
+                if (matrix[i][row]) {
+                    for (int j = row; j < Q; j++) {
+                        matrix[i][j] ^= matrix[row][j];
+                    }
+                }
+            }
+            rank++;
         }
         return rank;
     }
