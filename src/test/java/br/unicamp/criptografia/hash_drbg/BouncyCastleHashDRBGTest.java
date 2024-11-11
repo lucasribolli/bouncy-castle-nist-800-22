@@ -412,11 +412,6 @@ public class BouncyCastleHashDRBGTest {
 
         // 2.5.4 (1)
         int disjointBlocksN = Math.abs(lengthOfTheBitString / (numberOfMatrixRowsM * numberOfMatrixColumnsQ));
-        ArrayList<ArrayList<ArrayList<Integer>>> matrices = new ArrayList<>();
-
-        if (isANistExample) {
-            log(logTag, 1, "matrices: " + matrices);
-        }
 
         // 2.5.4 (2)
         int[] ranks = getFullDeficientAndLowerRanks(randomBits, numberOfMatrixRowsM,
@@ -447,18 +442,18 @@ public class BouncyCastleHashDRBGTest {
         return pValue;
     }
 
-    public static int[] getFullDeficientAndLowerRanks(String sequence, int M, int Q, int N) {
+    public static int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
         int fullRankCount = 0;
         int deficientRankCount = 0;
         int lowerRankCount = 0;
 
-        for (int block = 0; block < N; block++) {
-            boolean[][] matrix = getSubMatrix(sequence, block, M, Q);
-            int rank = calculateRank(matrix, M, Q);
+        for (int block = 0; block < disjointBlocksN; block++) {
+            boolean[][] matrix = getSubMatrix(sequence, block, rowsM, rowsQ);
+            int rank = calculateRank(matrix, rowsM, rowsQ);
 
-            if (rank == M) {
+            if (rank == rowsM) {
                 fullRankCount++;
-            } else if (rank == M - 1) {
+            } else if (rank == rowsM - 1) {
                 deficientRankCount++;
             } else {
                 lowerRankCount++;
