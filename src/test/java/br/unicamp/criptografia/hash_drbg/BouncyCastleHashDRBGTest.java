@@ -476,6 +476,7 @@ public class BouncyCastleHashDRBGTest {
 
     /**
      * It calculates the max number of lines or columns linearly independent of the matrix using Gaussian elimination.
+     * The rank is, after the appropriate swaps, the number of 1's on the main diagonal.
      * @param matrix matrix of boolean values
      * @param rows number of rows
      * @param columns number of columns
