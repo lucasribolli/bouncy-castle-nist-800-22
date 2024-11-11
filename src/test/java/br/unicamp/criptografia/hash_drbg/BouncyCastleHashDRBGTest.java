@@ -5,7 +5,6 @@ import org.apache.commons.math3.special.Gamma;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -448,8 +447,8 @@ public class BouncyCastleHashDRBGTest {
         int lowerRankCount = 0;
 
         for (int block = 0; block < disjointBlocksN; block++) {
-            boolean[][] matrix = getSubMatrix(sequence, block, rowsM, rowsQ);
-            int rank = calculateRank(matrix, rowsM, rowsQ);
+            int[][] matrix = getSubMatrix(sequence, block, rowsM, rowsQ);
+            int rank = calculateBinaryRank(matrix, rowsM, rowsQ);
 
             if (rank == rowsM) {
                 fullRankCount++;
@@ -462,14 +461,14 @@ public class BouncyCastleHashDRBGTest {
         return new int[]{fullRankCount, deficientRankCount, lowerRankCount};
     }
 
-    public static boolean[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
-        boolean[][] matrix = new boolean[rowsM][columnsQ];
+    public static int[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
+        int[][] matrix = new int[rowsM][columnsQ];
         int start = blockIndex * rowsM * columnsQ;
 
         for (int i = 0; i < rowsM; i++) {
             for (int j = 0; j < columnsQ; j++) {
                 int index = start + i * columnsQ + j;
-                matrix[i][j] = sequence.charAt(index) == '1';
+                matrix[i][j] = Integer.parseInt(String.valueOf(sequence.charAt(index)));
             }
         }
         return matrix;
@@ -482,17 +481,16 @@ public class BouncyCastleHashDRBGTest {
      * @param columns number of columns
      * @return max rank calculated
      */
-    public static int calculateRank(boolean[][] matrix, int rows, int columns) {
+    public static int calculateBinaryRank(int[][] matrix, int rows, int columns) {
         int rank = 0;
 
         for (int row = 0; row < rows; row++) {
-            boolean pivotElement = !matrix[row][row];
-            if (!pivotElement) {
+            if (matrix[row][row] == 0) {
                 // searching for an appropriate true pivot element value
                 boolean swapped = false;
                 for (int i = row + 1; i < rows; i++) {
-                    if (matrix[i][row]) {
-                        boolean[] temp = matrix[row];
+                    if (matrix[i][row] == 1) {
+                        int[] temp = matrix[row];
                         matrix[row] = matrix[i];
                         matrix[i] = temp;
                         swapped = true;
@@ -505,7 +503,7 @@ public class BouncyCastleHashDRBGTest {
             }
 
             for (int i = row + 1; i < rows; i++) {
-                if (matrix[i][row]) {
+                if (matrix[i][row] == 1) {
                     for (int j = row; j < columns; j++) {
                         // XOR operation
                         matrix[i][j] = matrix[i][j] ^ matrix[row][j];
