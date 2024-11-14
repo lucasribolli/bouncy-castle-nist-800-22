@@ -1,30 +1,18 @@
 package br.unicamp.criptografia.hash_drbg;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.UUID;
 
 public class CryptoHelper {
     public static String generateNonce(int length) {
         SecureRandom secureRandom = new SecureRandom();
-
-        // Obter o timestamp atual em milissegundos
         long timestamp = System.currentTimeMillis();
-
-        // Gerar um array de bytes aleatórios para o nonce
         byte[] randomBytes = new byte[length];
         secureRandom.nextBytes(randomBytes);
-
-        // Converter o timestamp para bytes
         byte[] timestampBytes = longToBytes(timestamp);
-
-        // Concatenar o timestamp e os bytes aleatórios
         byte[] nonceBytes = new byte[length + timestampBytes.length];
         System.arraycopy(timestampBytes, 0, nonceBytes, 0, timestampBytes.length);
         System.arraycopy(randomBytes, 0, nonceBytes, timestampBytes.length, length);
-
-        // Converter o nonce para uma string hexadecimal
         StringBuilder hexString = new StringBuilder();
         for (byte b : nonceBytes) {
             hexString.append(String.format("%02X", b));
@@ -33,11 +21,10 @@ public class CryptoHelper {
         return hexString.toString();
     }
 
-    // Função auxiliar para converter long (timestamp) em array de bytes
     private static byte[] longToBytes(long x) {
         byte[] bytes = new byte[8];
         for (int i = 7; i >= 0; i--) {
-            bytes[i] = (byte)(x & 0xFF);
+            bytes[i] = (byte) (x & 0xFF);
             x >>= 8;
         }
         return bytes;
@@ -67,10 +54,5 @@ public class CryptoHelper {
             string.append(randomUUID);
         }
         return string.toString();
-    }
-
-    public static byte[] bigDecimalToBytes(BigDecimal bigDecimal) {
-        BigInteger unscaledValue = bigDecimal.unscaledValue();
-        return unscaledValue.toByteArray();
     }
 }

@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertFalse;
 
-public class BouncyCastleHashDRBGTest {
+    public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
     private static final String NIST_EXAMPLE_RANDOM_100_BITS = "11001001000011111101101010100010001000010110100" +
             "01100001000110100110001001100011001100010100010111000";
@@ -30,7 +30,7 @@ public class BouncyCastleHashDRBGTest {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
         bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-        randomBytes = bouncyCastle.generateRandomBytesFromSecurityStrengthBits(100000);
+        randomBytes = bouncyCastle.generateDefaultRandomBytes();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
