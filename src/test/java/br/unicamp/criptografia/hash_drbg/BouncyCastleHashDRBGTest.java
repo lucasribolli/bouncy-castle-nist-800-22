@@ -53,13 +53,8 @@ import static org.junit.Assert.assertFalse;
      * @return pValue to be validated
      */
     private double getFrequencyMonobitPValue(String randomBits) {
-        String logTag = "2.1.4";
-        // 2.1.4 (1)
         int length = randomBits.length();
-        log(logTag, 1, "length (n): " + length);
-
         int absoluteSum = 0;
-
         for (int i = 0; i < length; i++) {
             int bit = Integer.parseInt(String.valueOf(randomBits.charAt(i)));
             if (bit == 1) {
@@ -68,19 +63,8 @@ import static org.junit.Assert.assertFalse;
                 absoluteSum--;
             }
         }
-        log(logTag, 1, "Absolute sum: " + absoluteSum);
-
-
-        // 2.1.4 (2)
         double referenceDistribution = Math.abs(absoluteSum) / Math.sqrt(length);
-        log(logTag, 2, "Reference Distribution: " + referenceDistribution);
-
-
-        // 2.1.4 (3)
-        double pValue = Erf.erfc(referenceDistribution / Math.sqrt(2));
-        log(logTag, 3, "P-value: " + pValue);
-
-        return pValue;
+        return Erf.erfc(referenceDistribution / Math.sqrt(2));
     }
 
     @Test
