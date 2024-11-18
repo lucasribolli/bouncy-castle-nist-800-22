@@ -11,7 +11,7 @@ import java.util.Vector;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
 
 public class BouncyCastleHashDRBGTest {
@@ -128,13 +128,17 @@ public class BouncyCastleHashDRBGTest {
     private double getRunsTestPValue(String randomBits) {
         // 2.3.4 (1)
         int lengthOfTheBitString = randomBits.length();
-        double preTestProportion = 0.0;
+        double preTestProportion;
         double sum = 0.0;
         for (int j = 0; j < lengthOfTheBitString; j++) {
             int bit = Integer.parseInt(String.valueOf(randomBits.charAt(j)));
             sum += bit;
         }
         preTestProportion = sum / lengthOfTheBitString;
+
+        // 2.3.4 (2)
+        double frequencyTestPrerequisite = 2 / Math.sqrt(lengthOfTheBitString);
+        assertThat(frequencyTestPrerequisite, greaterThanOrEqualTo(Math.abs(preTestProportion - 0.5)));
 
         // 2.3.4 (3)
         int testStatisticValue = 0;
