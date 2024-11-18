@@ -21,6 +21,7 @@ public class BouncyCastleHashDRBGTest {
     private static final String NIST_EXAMPLE_RANDOM_128_BITS = "11001100000101010110110001001100111000000000001" +
             "001001101010100010001001111010110100000001101011111001100111001101101100010110010";
     private static final String NIST_EXAMPLE_RANDOM_20_BITS = "01011001001010101101";
+    private static final String NIST_EXAMPLE_RANDOM_10_BITS = "1001101011";
     private static BouncyCastleHashDRBG bouncyCastle;
     private static byte[] randomBytes;
     private static String bouncyCastleRandomBits;
@@ -114,7 +115,13 @@ public class BouncyCastleHashDRBGTest {
     }
 
     @Test
-    public void runsTest_NIST_Example() {
+    public void runsTest_NIST_Example_10_Bits() {
+        double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_10_BITS);
+        nistPValueAssertion(pValue);
+    }
+
+    @Test
+    public void runsTest_NIST_Example_100_Bits() {
         double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_100_BITS);
         nistPValueAssertion(pValue);
     }
