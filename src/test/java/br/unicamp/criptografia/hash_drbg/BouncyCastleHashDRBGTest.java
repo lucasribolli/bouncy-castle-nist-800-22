@@ -149,7 +149,7 @@ public class BouncyCastleHashDRBGTest {
 
         // 2.3.4 (3)
         int testStatisticValue = 0;
-        for (int k = 1; k <= lengthOfTheBitString - 1; k++) {
+        for (int k = 1; k < lengthOfTheBitString - 1; k++) {
             int r = r(randomBits, k);
             testStatisticValue += r;
         }
@@ -165,12 +165,9 @@ public class BouncyCastleHashDRBGTest {
 
     private int r(String randomBits, int k) {
         int currentBit = Integer.parseInt(String.valueOf(randomBits.charAt(k)));
-        int nextBit = -1;
+        int nextBit;
         int ret;
-        try {
-            nextBit = Integer.parseInt(String.valueOf(randomBits.charAt(k + 1)));
-        } catch (IndexOutOfBoundsException _) {
-        }
+        nextBit = Integer.parseInt(String.valueOf(randomBits.charAt(k + 1)));
         if (currentBit == nextBit) {
             ret = 0;
         } else {
