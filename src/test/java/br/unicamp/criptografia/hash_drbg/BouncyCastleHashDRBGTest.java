@@ -11,7 +11,7 @@ import java.util.Vector;
 
 import static br.unicamp.criptografia.hash_drbg.CryptoHelper.generatePersonalizationString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertFalse;
 
 public class BouncyCastleHashDRBGTest {
@@ -345,8 +345,6 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getBinaryMatrixRankTestPValue(String randomBits, boolean isANistExample) {
-        String logTag = "2.5.4";
-
         int lengthOfTheBitString = randomBits.length();
         int numberOfMatrixRowsM, numberOfMatrixColumnsQ;
         numberOfMatrixRowsM = numberOfMatrixColumnsQ = 32;
@@ -369,26 +367,21 @@ public class BouncyCastleHashDRBGTest {
         int deficientRankCount = ranks[1];
         int lowerRankCount = ranks[2];
 
-        log(logTag, 3, "fullRank: " + fullRank);
-        log(logTag, 3, "deficientRankCount: " + deficientRankCount);
-        log(logTag, 3, "lowerRankCount: " + lowerRankCount);
-
         // 2.5.4 (4)
         double pFullRank = 0.2888;
         double pDeficientRank = 0.5776;
         double pLowerRank = 0.1336;
 
-        double chiSquareStatisticObserved = Math.pow(fullRank - disjointBlocksN * pFullRank, 2) / (disjointBlocksN * pFullRank) +
-                Math.pow(deficientRankCount - disjointBlocksN * pDeficientRank, 2) / (disjointBlocksN * pDeficientRank) +
-                Math.pow(lowerRankCount - disjointBlocksN * pLowerRank, 2) / disjointBlocksN * pLowerRank;
-
-        log(logTag, 4, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
+        double chiSquareStatisticObserved =
+                Math.pow(fullRank - disjointBlocksN * pFullRank, 2)
+                        / (disjointBlocksN * pFullRank) +
+                Math.pow(deficientRankCount - disjointBlocksN * pDeficientRank, 2)
+                        / (disjointBlocksN * pDeficientRank) +
+                Math.pow(lowerRankCount - disjointBlocksN * pLowerRank, 2)
+                        / disjointBlocksN * pLowerRank;
 
         // 2.5.4 (5)
-        double pValue = Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
-        log(logTag, 5, "pValue: " + pValue);
-
-        return pValue;
+        return Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
     }
 
     public static int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
