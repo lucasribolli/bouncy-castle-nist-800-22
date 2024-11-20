@@ -404,7 +404,7 @@ public class BouncyCastleHashDRBGTest {
         return new int[]{fullRankCount, deficientRankCount, lowerRankCount};
     }
 
-    public static int[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
+    public int[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
         int[][] matrix = new int[rowsM][columnsQ];
         int start = blockIndex * rowsM * columnsQ;
 
@@ -426,7 +426,7 @@ public class BouncyCastleHashDRBGTest {
      * @param columns number of columns
      * @return max rank calculated
      */
-    public static int calculateBinaryRank(int[][] matrix, int rows, int columns) {
+    public int calculateBinaryRank(int[][] matrix, int rows, int columns) {
         int rank = 0;
 
         for (int row = 0; row < rows; row++) {
