@@ -23,10 +23,6 @@ public class BouncyCastleHashDRBG {
         return generate(SECURITY_STRENGTH_BYTES);
     }
 
-    public byte[] generateRandomBytesFromSecurityStrengthBits(int securityStrengthBits) {
-        return generate(securityStrengthBits / 8);
-    }
-
     private byte[] generate(int securityStrengthBytes) {
         EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
