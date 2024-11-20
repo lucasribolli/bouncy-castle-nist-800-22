@@ -317,7 +317,7 @@ public class BouncyCastleHashDRBGTest {
                     0.1088,
             };
         }
-        if (k == 5 && m == 10000) {
+        if (k == 6 && m == 10000) {
             return new double[]{
                     0.0882,
                     0.2092,
