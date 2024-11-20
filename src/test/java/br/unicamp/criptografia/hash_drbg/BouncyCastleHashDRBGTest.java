@@ -213,12 +213,6 @@ public class BouncyCastleHashDRBGTest {
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfBitString, lengthOfEachBlock);
         ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
 
-        Integer[][] preSetMKN = {
-                {8, 3, 16},
-                {128, 5, 49},
-                {(int) Math.pow(10, 4), 6, 75}
-        };
-
         ArrayList<Integer> maxRuns = new ArrayList<>(lengthOfEachBlock);
         for (String block : blocks) {
             int maxRun = 0;
@@ -237,6 +231,12 @@ public class BouncyCastleHashDRBGTest {
             }
             maxRuns.add(maxRun);
         }
+
+        Integer[][] preSetMKN = {
+                {8, 3, 16},
+                {128, 5, 49},
+                {(int) Math.pow(10, 4), 6, 75}
+        };
 
         int sizeOfFrequencies = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
         Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
