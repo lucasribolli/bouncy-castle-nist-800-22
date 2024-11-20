@@ -189,8 +189,6 @@ public class BouncyCastleHashDRBGTest {
     }
 
     private double getTestForTheLongestRunOfOnesInABlockPValue(String randomBits, int lengthOfEachBlock) {
-        String logTag = "2.4.4";
-
         int lengthOfBitString = randomBits.length();
 
         Integer[][] preSetMinimumLengthOfBitStringByLengthOfEachBlock = {
@@ -214,9 +212,6 @@ public class BouncyCastleHashDRBGTest {
         // 2.4.4 (1)
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfBitString, lengthOfEachBlock);
         ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
-
-        log(logTag, 1, "nonOverlappingBlocks: " + nonOverlappingBlocks);
-        log(logTag, 1, "blocks: " + blocks);
 
         Integer[][] preSetMKN = {
                 {8, 3, 16},
@@ -243,8 +238,6 @@ public class BouncyCastleHashDRBGTest {
             maxRuns.add(maxRun);
         }
 
-        log(logTag, 2, "maxRuns: " + maxRuns);
-
         int sizeOfFrequencies = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
         Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
 
@@ -253,8 +246,6 @@ public class BouncyCastleHashDRBGTest {
             int currentMaxRun = (int) maxRuns.stream().filter(integer -> integer == finalI).count();
             frequencies.add(currentMaxRun);
         }
-
-        log(logTag, 2, "frequencies: " + frequencies);
 
         double chiSquareStatisticObserved = 0.0;
         for (int i = 0; i <= sizeOfFrequencies; i++) {
@@ -267,13 +258,8 @@ public class BouncyCastleHashDRBGTest {
             chiSquareStatisticObserved += divisor / nByProbability;
         }
 
-        log(logTag, 2, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
-
         // 2.4.4 (4)
-        // igamc: Complementary Incomplete Gamma Function
-        double pValue = Gamma.regularizedGammaQ((double) sizeOfFrequencies / 2, chiSquareStatisticObserved / 2);
-        log(logTag, 4, "pValue: " + pValue);
-        return pValue;
+        return Gamma.regularizedGammaQ((double) sizeOfFrequencies / 2, chiSquareStatisticObserved / 2);
     }
 
     private Integer getColumnFromFirstValue(Integer[][] matrix, int target, int column) {
