@@ -384,7 +384,7 @@ public class BouncyCastleHashDRBGTest {
         return Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
     }
 
-    public static int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
+    public int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
         int fullRankCount = 0;
         int deficientRankCount = 0;
         int lowerRankCount = 0;
