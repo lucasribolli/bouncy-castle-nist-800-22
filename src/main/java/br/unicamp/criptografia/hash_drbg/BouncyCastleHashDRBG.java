@@ -19,11 +19,7 @@ public class BouncyCastleHashDRBG {
         mPersonalizationString = personalizationString;
     }
 
-    public byte[] generateDefaultRandomBytes() {
-        return generate(SECURITY_STRENGTH_BYTES);
-    }
-
-    private byte[] generate(int securityStrengthBytes) {
+    public byte[] generate() {
         EntropySourceProvider entropySourceProvider = getEntropySourceProvider();
 
         SHA256Digest digest = new SHA256Digest();
@@ -38,7 +34,7 @@ public class BouncyCastleHashDRBG {
                 personalizationString
         );
 
-        byte[] randomBytes = new byte[securityStrengthBytes];
+        byte[] randomBytes = new byte[BouncyCastleHashDRBG.SECURITY_STRENGTH_BYTES];
         boolean predictionResistant = true;
         int numberOfGeneratedBits = drbg.generate(randomBytes, null, predictionResistant);
 

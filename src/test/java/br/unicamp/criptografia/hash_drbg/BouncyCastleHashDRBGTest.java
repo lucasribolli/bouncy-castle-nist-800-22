@@ -31,7 +31,7 @@ public class BouncyCastleHashDRBGTest {
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
         bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-        randomBytes = bouncyCastle.generateDefaultRandomBytes();
+        randomBytes = bouncyCastle.generate();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
