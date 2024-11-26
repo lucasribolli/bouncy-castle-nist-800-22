@@ -84,6 +84,9 @@ public class BouncyCastleHashDRBGTest {
         // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfTheBitString, lengthOfEachBlock);
+        if (nonOverlappingBlocks == 1) {
+            return getFrequencyMonobitPValue(randomBits);
+        }
 
         // 2.2.4 (2)
         ArrayList<Double> proportionOfOnes = new ArrayList<>();
