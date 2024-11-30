@@ -14,13 +14,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertFalse;
 
-    public class BouncyCastleHashDRBGTest {
+public class BouncyCastleHashDRBGTest {
     private static final Double BASE_P_VALUE = 0.01;
     private static final String NIST_EXAMPLE_RANDOM_100_BITS = "11001001000011111101101010100010001000010110100" +
             "01100001000110100110001001100011001100010100010111000";
     private static final String NIST_EXAMPLE_RANDOM_128_BITS = "11001100000101010110110001001100111000000000001" +
             "001001101010100010001001111010110100000001101011111001100111001101101100010110010";
     private static final String NIST_EXAMPLE_RANDOM_20_BITS = "01011001001010101101";
+    private static final String NIST_EXAMPLE_RANDOM_10_BITS = "1001101011";
     private static BouncyCastleHashDRBG bouncyCastle;
     private static byte[] randomBytes;
     private static String bouncyCastleRandomBits;
@@ -30,7 +31,7 @@ import static org.junit.Assert.assertFalse;
         String nonce = CryptoHelper.generateNonce(128);
         String personalizationString = generatePersonalizationString();
         bouncyCastle = new BouncyCastleHashDRBG(nonce, personalizationString);
-        randomBytes = bouncyCastle.generateDefaultRandomBytes();
+        randomBytes = bouncyCastle.generate();
         bouncyCastleRandomBits = CryptoHelper.bytesToBits(randomBytes);
     }
 
@@ -53,13 +54,8 @@ import static org.junit.Assert.assertFalse;
      * @return pValue to be validated
      */
     private double getFrequencyMonobitPValue(String randomBits) {
-        String logTag = "2.1.4";
-        // 2.1.4 (1)
         int length = randomBits.length();
-        log(logTag, 1, "length (n): " + length);
-
         int absoluteSum = 0;
-
         for (int i = 0; i < length; i++) {
             int bit = Integer.parseInt(String.valueOf(randomBits.charAt(i)));
             if (bit == 1) {
@@ -68,19 +64,8 @@ import static org.junit.Assert.assertFalse;
                 absoluteSum--;
             }
         }
-        log(logTag, 1, "Absolute sum: " + absoluteSum);
-
-
-        // 2.1.4 (2)
         double referenceDistribution = Math.abs(absoluteSum) / Math.sqrt(length);
-        log(logTag, 2, "Reference Distribution: " + referenceDistribution);
-
-
-        // 2.1.4 (3)
-        double pValue = Erf.erfc(referenceDistribution / Math.sqrt(2));
-        log(logTag, 3, "P-value: " + pValue);
-
-        return pValue;
+        return Erf.erfc(referenceDistribution / Math.sqrt(2));
     }
 
     @Test
@@ -96,20 +81,16 @@ import static org.junit.Assert.assertFalse;
     }
 
     private double getBlockFrequencyPValue(String randomBits, int lengthOfEachBlock) {
-        String logTag = "2.2.4";
-
         // 2.2.4 (1)
         int lengthOfTheBitString = randomBits.length();
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfTheBitString, lengthOfEachBlock);
-        ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
-
-        log(logTag, 1, "blocks: " + blocks);
-
+        if (nonOverlappingBlocks == 1) {
+            return getFrequencyMonobitPValue(randomBits);
+        }
 
         // 2.2.4 (2)
         ArrayList<Double> proportionOfOnes = new ArrayList<>();
         double sum;
-        // 1 <= i <= N
         for (int i = 1; i <= nonOverlappingBlocks; i++) {
             sum = 0;
             for (int j = 0; j < lengthOfEachBlock; j++) {
@@ -122,11 +103,8 @@ import static org.junit.Assert.assertFalse;
             proportionOfOnes.add(proportionOfOne);
         }
 
-        log(logTag, 2, "proportionOfOnes: " + proportionOfOnes);
-
-
         // 2.2.4 (3)
-        double chiSquareStatisticObserved = 0.0;
+        double chiSquareStatisticObserved;
         sum = 0.0;
         for (int i = 0; i < nonOverlappingBlocks; i++) {
             sum += Math.pow(proportionOfOnes.get(i) - 0.5, 2);
@@ -134,19 +112,19 @@ import static org.junit.Assert.assertFalse;
 
         chiSquareStatisticObserved = 4 * lengthOfEachBlock * sum;
 
-        log(logTag, 3, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
-
 
         // 2.2.4 (4)
-        // igamc: Complementary Incomplete Gamma Function
-        double pValue = Gamma.regularizedGammaQ((double) nonOverlappingBlocks / 2, chiSquareStatisticObserved / 2);
-        log(logTag, 4, "pValue: " + pValue);
-
-        return pValue;
+        return Gamma.regularizedGammaQ((double) nonOverlappingBlocks / 2, chiSquareStatisticObserved / 2);
     }
 
     @Test
-    public void runsTest_NIST_Example() {
+    public void runsTest_NIST_Example_10_Bits() {
+        double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_10_BITS);
+        nistPValueAssertion(pValue);
+    }
+
+    @Test
+    public void runsTest_NIST_Example_100_Bits() {
         double pValue = getRunsTestPValue(NIST_EXAMPLE_RANDOM_100_BITS);
         nistPValueAssertion(pValue);
     }
@@ -158,52 +136,41 @@ import static org.junit.Assert.assertFalse;
     }
 
     private double getRunsTestPValue(String randomBits) {
-        String logTag = "2.3.4";
-
         // 2.3.4 (1)
         int lengthOfTheBitString = randomBits.length();
-        double preTestProportion = 0.0;
+        double preTestProportion;
         double sum = 0.0;
         for (int j = 0; j < lengthOfTheBitString; j++) {
             int bit = Integer.parseInt(String.valueOf(randomBits.charAt(j)));
             sum += bit;
         }
         preTestProportion = sum / lengthOfTheBitString;
-        log(logTag, 1, "preTestProportion: " + preTestProportion);
-
 
         // 2.3.4 (2)
-        // Frequency monobit test should be successful
-
+        double frequencyTestPrerequisite = 2 / Math.sqrt(lengthOfTheBitString);
+        assertThat(frequencyTestPrerequisite, greaterThanOrEqualTo(Math.abs(preTestProportion - 0.5)));
 
         // 2.3.4 (3)
         int testStatisticValue = 0;
-        for (int k = 1; k <= lengthOfTheBitString - 1; k++) {
+        for (int k = 1; k < lengthOfTheBitString - 1; k++) {
             int r = r(randomBits, k);
             testStatisticValue += r;
         }
         testStatisticValue++;
 
-        log(logTag, 3, "testStatisticValue: " + testStatisticValue);
-
-
         // 2.3.4 (4)
-        double divisor = Math.abs(testStatisticValue - 2 * lengthOfTheBitString * preTestProportion * (1 - preTestProportion));
-        double dividend = 2 * Math.sqrt(2 * lengthOfTheBitString) * preTestProportion * (1 - preTestProportion);
-        double pValue = Erf.erfc(divisor / dividend);
-        log(logTag, 3, "pValue: " + pValue);
-
-        return pValue;
+        double divisor = Math.abs(testStatisticValue - 2 * lengthOfTheBitString
+                * preTestProportion * (1 - preTestProportion));
+        double dividend = 2 * Math.sqrt(2 * lengthOfTheBitString) * preTestProportion
+                * (1 - preTestProportion);
+        return Erf.erfc(divisor / dividend);
     }
 
     private int r(String randomBits, int k) {
         int currentBit = Integer.parseInt(String.valueOf(randomBits.charAt(k)));
-        int nextBit = -1;
+        int nextBit;
         int ret;
-        try {
-            nextBit = Integer.parseInt(String.valueOf(randomBits.charAt(k + 1)));
-        } catch (IndexOutOfBoundsException _) {
-        }
+        nextBit = Integer.parseInt(String.valueOf(randomBits.charAt(k + 1)));
         if (currentBit == nextBit) {
             ret = 0;
         } else {
@@ -225,8 +192,6 @@ import static org.junit.Assert.assertFalse;
     }
 
     private double getTestForTheLongestRunOfOnesInABlockPValue(String randomBits, int lengthOfEachBlock) {
-        String logTag = "2.4.4";
-
         int lengthOfBitString = randomBits.length();
 
         Integer[][] preSetMinimumLengthOfBitStringByLengthOfEachBlock = {
@@ -251,15 +216,6 @@ import static org.junit.Assert.assertFalse;
         int nonOverlappingBlocks = getNonOverlappingBlocks(lengthOfBitString, lengthOfEachBlock);
         ArrayList<String> blocks = getBlocks(randomBits, nonOverlappingBlocks, lengthOfEachBlock);
 
-        log(logTag, 1, "nonOverlappingBlocks: " + nonOverlappingBlocks);
-        log(logTag, 1, "blocks: " + blocks);
-
-        Integer[][] preSetMKN = {
-                {8, 3, 16},
-                {128, 5, 49},
-                {(int) Math.pow(10, 4), 6, 75}
-        };
-
         ArrayList<Integer> maxRuns = new ArrayList<>(lengthOfEachBlock);
         for (String block : blocks) {
             int maxRun = 0;
@@ -279,7 +235,11 @@ import static org.junit.Assert.assertFalse;
             maxRuns.add(maxRun);
         }
 
-        log(logTag, 2, "maxRuns: " + maxRuns);
+        Integer[][] preSetMKN = {
+                {8, 3, 16},
+                {128, 5, 49},
+                {(int) Math.pow(10, 4), 6, 75}
+        };
 
         int sizeOfFrequencies = getColumnFromFirstValue(preSetMKN, lengthOfEachBlock, 1);
         Vector<Integer> frequencies = new Vector<>(sizeOfFrequencies);
@@ -289,8 +249,6 @@ import static org.junit.Assert.assertFalse;
             int currentMaxRun = (int) maxRuns.stream().filter(integer -> integer == finalI).count();
             frequencies.add(currentMaxRun);
         }
-
-        log(logTag, 2, "frequencies: " + frequencies);
 
         double chiSquareStatisticObserved = 0.0;
         for (int i = 0; i <= sizeOfFrequencies; i++) {
@@ -303,13 +261,8 @@ import static org.junit.Assert.assertFalse;
             chiSquareStatisticObserved += divisor / nByProbability;
         }
 
-        log(logTag, 2, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
-
         // 2.4.4 (4)
-        // igamc: Complementary Incomplete Gamma Function
-        double pValue = Gamma.regularizedGammaQ((double) sizeOfFrequencies / 2, chiSquareStatisticObserved / 2);
-        log(logTag, 4, "pValue: " + pValue);
-        return pValue;
+        return Gamma.regularizedGammaQ((double) sizeOfFrequencies / 2, chiSquareStatisticObserved / 2);
     }
 
     private Integer getColumnFromFirstValue(Integer[][] matrix, int target, int column) {
@@ -367,7 +320,7 @@ import static org.junit.Assert.assertFalse;
                     0.1088,
             };
         }
-        if (k == 5 && m == 10000) {
+        if (k == 6 && m == 10000) {
             return new double[]{
                     0.0882,
                     0.2092,
@@ -395,8 +348,6 @@ import static org.junit.Assert.assertFalse;
     }
 
     private double getBinaryMatrixRankTestPValue(String randomBits, boolean isANistExample) {
-        String logTag = "2.5.4";
-
         int lengthOfTheBitString = randomBits.length();
         int numberOfMatrixRowsM, numberOfMatrixColumnsQ;
         numberOfMatrixRowsM = numberOfMatrixColumnsQ = 32;
@@ -419,29 +370,24 @@ import static org.junit.Assert.assertFalse;
         int deficientRankCount = ranks[1];
         int lowerRankCount = ranks[2];
 
-        log(logTag, 3, "fullRank: " + fullRank);
-        log(logTag, 3, "deficientRankCount: " + deficientRankCount);
-        log(logTag, 3, "lowerRankCount: " + lowerRankCount);
-
         // 2.5.4 (4)
         double pFullRank = 0.2888;
         double pDeficientRank = 0.5776;
         double pLowerRank = 0.1336;
 
-        double chiSquareStatisticObserved =  Math.pow(fullRank - disjointBlocksN * pFullRank, 2) / (disjointBlocksN * pFullRank) +
-                Math.pow(deficientRankCount - disjointBlocksN * pDeficientRank, 2) / (disjointBlocksN * pDeficientRank) +
-                Math.pow(lowerRankCount - disjointBlocksN * pLowerRank, 2) / disjointBlocksN * pLowerRank;
-
-        log(logTag, 4, "chiSquareStatisticObserved: " + chiSquareStatisticObserved);
+        double chiSquareStatisticObserved =
+                Math.pow(fullRank - disjointBlocksN * pFullRank, 2)
+                        / (disjointBlocksN * pFullRank) +
+                Math.pow(deficientRankCount - disjointBlocksN * pDeficientRank, 2)
+                        / (disjointBlocksN * pDeficientRank) +
+                Math.pow(lowerRankCount - disjointBlocksN * pLowerRank, 2)
+                        / disjointBlocksN * pLowerRank;
 
         // 2.5.4 (5)
-        double pValue = Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
-        log(logTag, 5, "pValue: " + pValue);
-
-        return pValue;
+        return Math.pow(EulerNumber.getWith6Digits(), (chiSquareStatisticObserved / 2) * (-1));
     }
 
-    public static int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
+    public int[] getFullDeficientAndLowerRanks(String sequence, int rowsM, int rowsQ, int disjointBlocksN) {
         int fullRankCount = 0;
         int deficientRankCount = 0;
         int lowerRankCount = 0;
@@ -461,7 +407,7 @@ import static org.junit.Assert.assertFalse;
         return new int[]{fullRankCount, deficientRankCount, lowerRankCount};
     }
 
-    public static int[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
+    public int[][] getSubMatrix(String sequence, int blockIndex, int rowsM, int columnsQ) {
         int[][] matrix = new int[rowsM][columnsQ];
         int start = blockIndex * rowsM * columnsQ;
 
@@ -477,12 +423,13 @@ import static org.junit.Assert.assertFalse;
     /**
      * It calculates the max number of lines or columns linearly independent of the matrix using Gaussian elimination.
      * The rank is, after the appropriate swaps, the number of 1's on the main diagonal.
-     * @param matrix matrix of boolean values
-     * @param rows number of rows
+     *
+     * @param matrix  matrix of boolean values
+     * @param rows    number of rows
      * @param columns number of columns
      * @return max rank calculated
      */
-    public static int calculateBinaryRank(int[][] matrix, int rows, int columns) {
+    public int calculateBinaryRank(int[][] matrix, int rows, int columns) {
         int rank = 0;
 
         for (int row = 0; row < rows; row++) {
